@@ -2,40 +2,26 @@ theory internship_machine
   imports Main
 begin
 
-datatype State = S_1 | S_2
+datatype State = S_1 | S_2 
 
 definition \<Sigma> :: "State set" where
 "\<Sigma> = {S_1, S_2}"
 
 
-
-
 type_synonym INPUT = nat
-type_synonym OUT = bool
+type_synonym OUT =  bool
 
-type_synonym STEP = "(INPUT \<times> State \<times> OUT)"
+record STEP =
+INPUT::INPUT
+STATE:: State
+OUT:: OUT
 
-definition F_space :: "(nat \<Rightarrow> STEP) set" where
-"F_space = {f. f::(nat\<Rightarrow>STEP)}"
 
+consts t:: "State \<times> INPUT \<Rightarrow> State \<times> OUT"
 
-consts t::"State \<times> INPUT \<Rightarrow> State \<times> OUT"
 
 definition paths:: "(nat\<Rightarrow>STEP) set" where
-"paths 0 = S_1"|
-"paths \<equiv> {P::nat\<Rightarrow>STEP. \<forall>n. (\<exists>i out. P(0) = (i, S_1, out)) \<and> P(n+1) = (i, t (P n))}"
-(*"paths n \<equiv> {\<exists>i. transtion(p(n)_2, i) = (p(n+1)_2,p(n)_3)}"*)
-(*"paths n \<equiv> (\<exists>i. transtion(p(n)_2, i) = (p(n+1)_2,p(n)_3))"*)
+"paths \<equiv> {p::(nat \<Rightarrow> STEP). STATE(p(0)) = S_1 \<and> (\<forall>n. \<exists>i. t(STATE(p n),i) = (STATE(p(n+1)), OUT(p n)))}"
 
-
-
-fun p:: "nat \<Rightarrow> STEP" where
-"p 0 = (i, INITIAL, translate INITIAL)"|
-"p n = (input, transition input (sanitise (p (n-1))), translate (transition input (sanitise (p (n-1)))))"
-
-
-inductive p:: "nat \<Rightarrow> STEP \<Rightarrow> bool" where
-"p 0 (i, INITIAL, translate INITIAL)"|
-"p n (input, transition input (sanitise (p (n-1))), translate (transition input (sanitise (p (n-1)))))"
 
 end
