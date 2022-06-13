@@ -22,7 +22,10 @@ definition F_space :: "(nat \<Rightarrow> STEP) set" where
 consts t::"State \<times> INPUT \<Rightarrow> State \<times> OUT"
 
 definition paths:: "(nat\<Rightarrow>STEP) set" where
+"paths 0 = S_1"|
 "paths \<equiv> {P::nat\<Rightarrow>STEP. \<forall>n. (\<exists>i out. P(0) = (i, S_1, out)) \<and> P(n+1) = (i, t (P n))}"
+(*"paths n \<equiv> {\<exists>i. transtion(p(n)_2, i) = (p(n+1)_2,p(n)_3)}"*)
+(*"paths n \<equiv> (\<exists>i. transtion(p(n)_2, i) = (p(n+1)_2,p(n)_3))"*)
 
 
 
