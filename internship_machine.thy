@@ -29,6 +29,10 @@ fun t:: "State \<times> INPUT \<Rightarrow> State \<times> OUT" where
 definition paths:: "(nat\<Rightarrow>STEP) set" where
 "paths \<equiv> {p::(nat \<Rightarrow> STEP). STATE(p(0)) = S_1 \<and> (\<forall>n. \<exists>i. t(STATE(p n),i) = (STATE(p(n+1)), OUT(p n)))}"
 
+(*check whether there is a path leading between stuffs*)
+inductive route::"nat list \<Rightarrow> State \<Rightarrow> State \<Rightarrow> bool" where
+"fst(t (initial, i)) = current \<Longrightarrow> route [i] initial current"|
+"route [i] initial node \<Longrightarrow> route is node current  \<Longrightarrow> route (i#is) initial current"
 
 (*general path*)
 inductive p::"nat\<Rightarrow>STEP \<Rightarrow> bool" where
