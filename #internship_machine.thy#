@@ -33,7 +33,7 @@ definition paths:: "(nat\<Rightarrow>STEP) set" where
 (*general path*)
 inductive p::"nat\<Rightarrow>STEP \<Rightarrow> bool" where
 "tmp = \<lparr>INPUT = i, STATE = S_1, OUT = snd(t(S_1, i))\<rparr>  \<Longrightarrow>  p 0 tmp"|
-"\<exists>i::nat. transitions i S_1 s \<Longrightarrow> tmp = \<lparr> INPUT = i, STATE = s, OUT = snd(t(s,i)) \<rparr> \<Longrightarrow> p n tmp"
+"\<exists>i::nat. tmp = \<lparr> INPUT = i, STATE = s, OUT = snd(t(s,i)) \<rparr> \<Longrightarrow> p n tmp \<Longrightarrow> p (Suc n) = "
 
 
 
