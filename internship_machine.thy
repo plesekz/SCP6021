@@ -19,8 +19,10 @@ definition F_space :: "(nat \<Rightarrow> STEP) set" where
 "F_space = {f. f::(nat\<Rightarrow>STEP)}"
 
 
-definition paths:: "(INPUT, State, OUT) set" where
-"paths = {P::nat\<Rightarrow>STEP. P(0) = (INPUT, State, OUT) \<and> P(n+1) = (i, t (P n), translate (t (P n)))}"
+consts t::"State \<times> INPUT \<Rightarrow> State \<times> OUT"
+
+definition paths:: "(nat\<Rightarrow>STEP) set" where
+"paths \<equiv> {P::nat\<Rightarrow>STEP. \<forall>n. (\<exists>i out. P(0) = (i, S_1, out)) \<and> P(n+1) = (i, t (P n))}"
 
 
 
