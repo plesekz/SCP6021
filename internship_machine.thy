@@ -35,7 +35,7 @@ lemma no_dead_ends: "\<forall>s \<in> \<Sigma>. \<exists>i j. fst(t(s,i)) = j"
 
 
   (*check whether there is a path leading between two nodes*)
-inductive path::"nat list \<Rightarrow> State \<Rightarrow> State \<Rightarrow> bool" where
+inductive path::"INPUT list \<Rightarrow> State \<Rightarrow> State \<Rightarrow> bool" where
 "fst(t (initial, i)) = current \<Longrightarrow> path [i] initial current"|
 "path [i] initial node \<Longrightarrow> path is node current  \<Longrightarrow> path (i#is) initial current"
 
@@ -55,6 +55,7 @@ inductive cyclic_group::"State list \<Rightarrow> bool" where
 inductive cyclic_machine:: "bool" where
 "\<forall>n\<in>\<Sigma>. cyclic_node n \<Longrightarrow> cyclic_machine"
 
+  (*a node/group of nodes are a trap group if there is not a path to a node outside of the group*)
 inductive not_a_trap_group:: "State set \<Rightarrow> bool" where
 "\<exists>node\<in>grp. \<exists>onode\<in>(\<Sigma>-grp). path i  node onode \<Longrightarrow> not_a_trap_group grp"
 
@@ -63,6 +64,12 @@ inductive trap_group::"State set \<Rightarrow> bool" where
 
 inductive trap_node::"State \<Rightarrow> bool" where
 "trap_group (set[st]) \<Longrightarrow>trap_node st"
+
+  (*interconnectivness - a graph is interconnected if every node has a 1 cardinality path to every other*)
+inductive interconnectivness:: "bool" where
+"\<forall>node\<in>\<Sigma>. \<forall>onode\<in>(\<Sigma>-node). path [i] node onode \<Longrightarrow> interconnectivness"
+(*use def on base machine *)
+
 
 
 (*set of all paths*)
