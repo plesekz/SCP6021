@@ -20,8 +20,9 @@ OUT:: OUT
 fun t:: "State \<times> INPUT \<Rightarrow> State \<times> OUT" where
 "t (S_1, 0) = (S_1, False)"|
 "t (S_1, n) = (S_2, True) "|
-"t (S_2, 0) = (S_1, False) "|
-"t (S_2, n) = (S_2, True)"
+"t (S_2, 0) = (S_2, True)"|
+"t (S_2, n) = (S_1, False) "
+
 
 
 lemma no_dead_ends: "\<forall>s \<in> \<Sigma>. \<exists>i j. fst(t(s,i)) = j"
@@ -70,13 +71,32 @@ inductive p::"nat \<Rightarrow> STEP \<Rightarrow> bool" where
 
 lemma big_fish: "\<forall>q\<in>paths. \<forall>m. \<exists>n>m. \<exists>s_0. OUT(q n) = s_0" by auto
 
+definition cyclic_paths:: "(nat \<Rightarrow> STEP) set" where
+"cyclic_paths \<equiv> {q::(nat\<Rightarrow>STEP). q \<in> paths \<and> ( \<exists>n. \<exists>m. STATE(q n) = STATE(q m))}"
 
-lemma security: "\<forall>q \<in> paths. \<forall>S \<in> \<Sigma>. \<forall> m. q m = \<lparr>INPUT=1,STATE=S, OUT=True\<rparr>"
+
+lemma cyclic_paths_not_empty: "cyclic_paths \<noteq> {}"
 proof
-
-  
-  
- 
+  fix n
+  assume 0: "cyclic_paths = {}"
+  from path_def have "path n = \<lparr> INPUT = 0,STATE = S_1,OUT = False \<rparr>" by simp
+  (* then show path n \<in> cyclic paths *)
+  then have 1: "STATE(path n) = S_1" by simp
+  have 2:"STATE(path (Suc n)) = S_1" using path_in_paths paths_def
+    by (simp add: path_def)
+  from 1 2 have 3: "STATE(path n) = STATE(path (Suc n))"
+    by simp
+  hence "\<exists>n. \<exists> m. STATE(path n) = STATE(path m)"
+    by auto
+  hence "path \<in> paths \<and> (\<exists>n. \<exists> m. STATE(path n) = STATE(path m))" using path_in_paths by simp
+  hence 4: "path \<in> cyclic_paths" using cyclic_paths_def by auto
+  from 4 0 show "False" by auto
 qed
+
+
+
+
+
+
 
 end
