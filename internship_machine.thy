@@ -127,9 +127,8 @@ proof
   from 4 0 show "False" by auto
 qed
 
-lemma lower_bound: "\<forall>p\<in>paths. \<exists>n::nat. \<exists>m::nat. m>n \<longrightarrow> (STATE(p n) = S_1) \<longrightarrow> (INPUT(p n) > 0) \<longrightarrow> (INPUT(p m) = 0) \<longrightarrow> (OUTPUT(p m) = True)"
+lemma lower_bound: "\<forall>p\<in>paths. \<exists>n::nat. m>n \<longrightarrow> (STATE(p n) = S_1) \<longrightarrow> (INPUT(p n) > 0) \<longrightarrow> (INPUT(p m) = 0) \<longrightarrow> (OUTPUT(p m) = True)"
   by auto
-
 
 
 
