@@ -64,9 +64,12 @@ inductive trap_node::"State \<Rightarrow> bool" where
 "trap_group (set[st]) \<Longrightarrow>trap_node st"
 
   (*interconnectivness - a graph is interconnected if every node has a 1 cardinality path to every other*)
-definition interconnectivness:: "bool" where
-"\<forall>node\<in>\<Sigma>. \<forall>onode\<in>(\<Sigma>-node). path [i] node onode \<Longrightarrow> interconnectivness"
-(*use def on base machine *)
+inductive machine_interconnectivness:: "bool" where
+"\<forall>node\<in>\<Sigma>. \<forall>onode\<in>(\<Sigma>-set [(node::State)]). \<exists>i::INPUT. \<exists>out::OUT. (t (node,(i)) = (onode,out)) \<Longrightarrow> machine_interconnectivness"
+  (* check with Diego, making it def, as suggested, gives unknown error. *)
+
+inductive group_interconnectivness:: "State set \<Rightarrow> bool" where
+"\<forall>node::State\<in>S. \<forall>onode\<in>(S-set [(node::State)]). \<exists>i::INPUT. \<exists>out::OUT. (t (node,(i)) = (onode,out)) \<Longrightarrow> group_interconnectivness S"
 
 
 
