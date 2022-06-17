@@ -128,7 +128,166 @@ proof
 qed
 
 
+<<<<<<< Updated upstream
 
+=======
+lemma usf_simp: "i>0 \<Longrightarrow> t(st, i) = t(st, 1)"
+  by (metis One_nat_def State.exhaust gr0_implies_Suc t.simps(2) t.simps(4))
+
+
+(* declare [[simp_trace]] *)
+lemma enters_s2_base: "\<forall>p \<in> paths. STATE(p 0) = S_1 \<and> INPUT(p 0) > 0 \<longrightarrow> STATE(p(Suc 0)) = S_2"
+proof
+  fix p
+  assume 0: "p \<in> paths"
+  show " STATE (p 0) = S_1 \<and> 0 < INPUT (p 0) \<longrightarrow> STATE (p (Suc 0)) = S_2"
+  proof
+    assume "STATE (p 0) = S_1 \<and> 0 < INPUT (p 0)"
+    then have 1: "STATE (p 0) = S_1" and 2: "0 < INPUT (p 0)" by auto
+    from paths_def have 3: "\<forall>n. t (STATE (p n), INPUT (p n)) = (STATE (p (Suc n)), OUT (p n))" using 0 by auto
+    then have    "fst(t(STATE (p n), INPUT (p n))) = STATE(p (Suc n))" by (metis fstI)
+    then have 4: "fst(t(STATE (p 0), INPUT (p 0))) = STATE(p (Suc 0))" using 0 1 2 by (metis "3" fstI)
+
+    from t.simps have "t (S_1, 1) = (S_2, True)" using usf_simp by simp
+    then have "t(STATE(p 0), INPUT(p 0)) = (S_2, True)" by (simp add: "1" "2" usf_simp)
+    then have "fst(t(STATE(p 0), INPUT(p 0))) = S_2" by auto
+
+    then show "STATE (p (Suc 0)) = S_2" using 1 2 4 by auto
+  qed
+qed
+
+lemma enters_s2: "\<forall>p \<in> paths. STATE(p n) = S_1 \<and> INPUT(p n) > 0 \<longrightarrow> STATE(p(Suc n)) = S_2"
+proof
+  fix p
+  assume 0: "p \<in> paths"
+  show "STATE (p n) = S_1 \<and> 0 < INPUT (p n) \<longrightarrow> STATE (p (Suc n)) = S_2"
+  proof
+    assume "STATE (p n) = S_1 \<and> 0 < INPUT (p n)"
+    then have 1: "STATE (p n) = S_1" and 2: "0 < INPUT (p n)" by auto
+    from paths_def have 3: "\<forall>n. t (STATE (p n), INPUT (p n)) = (STATE (p (Suc n)), OUT (p n))" using 0 by auto
+    then have 4: "fst(t(STATE (p n), INPUT (p n))) = STATE(p (Suc n))" by (metis fstI)
+
+    from t.simps have "t (S_1, 1) = (S_2, True)" using usf_simp by simp
+    then have "t(STATE(p n), INPUT(p n)) = (S_2, True)" by (simp add: "1" "2" usf_simp)
+    then have "fst(t(STATE(p n), INPUT(p n))) = S_2" by auto
+
+    then show "STATE (p (Suc n)) = S_2" using 1 2 4 by auto
+  qed
+qed
+
+lemma stays_in_s2: "\<forall>p \<in> paths. STATE(p n) = S_2 \<and> INPUT(p n) = 0 \<longrightarrow> STATE(p(Suc n)) = S_2"
+proof
+  fix p
+  assume 0: "p \<in> paths"
+  show "STATE(p n) = S_2 \<and> INPUT(p n) = 0 \<longrightarrow> STATE (p (Suc n)) = S_2"
+  proof
+    assume "STATE(p n) = S_2 \<and> INPUT(p n) = 0"
+    then have 1: "STATE (p n) = S_2" and 2: "0 = INPUT (p n)" by auto
+    from paths_def have 3: "\<forall>n. t (STATE (p n), INPUT (p n)) = (STATE (p (Suc n)), OUT (p n))" using 0 by auto
+    then have 4: "fst(t(STATE (p n), INPUT (p n))) = STATE(p (Suc n))" by (metis fstI)
+
+    from t.simps have "t (S_2, 0) = (S_2, True)" using usf_simp by simp
+    then have "t(STATE(p n), INPUT(p n)) = (S_2, True)" by (simp add: "1" "2" usf_simp)
+    then have "fst(t(STATE(p n), INPUT(p n))) = S_2" by auto
+
+    then show "STATE (p (Suc n)) = S_2" using 1 2 4 by auto
+  qed
+qed
+
+lemma y'all: "\<forall>p \<in> paths. STATE(p n) = S_1 \<and> INPUT(p n) > 0 \<and>
+               (\<forall>j. j \<in> {n..m} \<longrightarrow> INPUT(p j) = 0) \<longrightarrow>  i \<in> {n..m} \<longrightarrow> STATE(p i) = S_2"
+proof
+  fix p
+  assume pa: "p\<in>paths"
+  show "STATE(p n) = S_1 \<and> INPUT(p n) > 0 \<and>(\<forall>j. j \<in> {n..m} \<longrightarrow> INPUT(p j) = 0) \<longrightarrow> i \<in> {n..m}\<longrightarrow> STATE(p i) = S_2"
+  proof
+    assume as1: "STATE(p n) = S_1 \<and> INPUT(p n) > 0 \<and>(\<forall>j. j \<in> {n..m} \<longrightarrow> INPUT(p j) = 0)"
+    then have
+        1: "STATE(p n) = S_1" and
+        2: "INPUT(p n) > 0" and
+        3: "\<forall>j. j \<in> {n..m} \<longrightarrow> INPUT(p j) = 0" by auto
+    show "i \<in> {n..m}\<longrightarrow> STATE(p i) = S_2"
+    proof(induction i)
+      case 0
+      then show ?case using 1 2 3 by fastforce
+    next
+      case (Suc i)
+      then show ?case
+        by (metis Suc_leD as1 atLeastAtMost_iff le_SucE pa stays_in_s2 zero_less_iff_neq_zero)
+    qed
+  qed
+qed
+
+lemma outputs_true: "\<forall>p \<in> paths. ((STATE(p n) = S_1) \<and> (INPUT(p n) > 0)) \<longrightarrow> (OUT(p n) = True)"
+proof
+  fix p
+  assume pa: "p\<in>paths"
+  show "STATE(p n) = S_1 \<and> INPUT(p n) > 0 \<longrightarrow> OUT(p n) = True"
+  proof
+    assume inp: "STATE(p n) = S_1 \<and> INPUT(p n) > 0"
+    then have 1: "STATE(p n) = S_1" and 2: "INPUT(p n) > 0" by auto
+    
+    from paths_def have 3: "\<forall>n. t (STATE (p n), INPUT (p n)) = (STATE (p (Suc n)), OUT (p n))" using pa by auto
+    then have 4: "snd(t(STATE (p n), INPUT (p n))) = OUT(p n)" by simp
+
+    from t.simps have "t (S_1, 1) = (S_2, True)" using usf_simp by simp
+    then have "t(STATE(p n), INPUT(p n)) = (S_2, True)" by (simp add: "1" "2" usf_simp)
+    then have "snd(t(STATE(p n), INPUT(p n))) = True" by auto
+
+    then show "OUT(p n) = True" using 1 2 4 by auto
+  qed
+qed
+
+lemma lower_bound:
+ "\<forall>p\<in>paths. (STATE(p n) = S_1) \<and> (INPUT(p n) > 0)
+   \<longrightarrow> ((\<forall>m'>n. m'\<le> (n+m) \<longrightarrow> (INPUT(p m') = 0)) \<longrightarrow> (OUT(p (n+m)) = True))"
+        (*m'\<in> {n..(n+m)} *)
+        (*m'>n. m'\<le> (n+m) *)
+proof
+  fix p
+  assume ap:"p\<in>paths"
+  show "STATE (p n) = S_1 \<and> 0 < INPUT (p n) \<longrightarrow> ((\<forall>m'>n. m' \<le> (n+m) \<longrightarrow> INPUT (p m') = 0) \<longrightarrow> OUT (p (n+m)) = True)"
+  proof
+    assume as: "STATE (p n) = S_1 \<and> 0 < INPUT (p n) "
+    then have
+          1: "STATE (p n) = S_1" and
+          2: "0 < INPUT (p n)"
+      by auto
+    have next_one:"STATE(p (Suc n)) = S_2" using 1 2 enters_s2 ap by auto
+
+    show "(\<forall>m'>n. m' \<le> (n+m) \<longrightarrow> INPUT (p m') = 0) \<longrightarrow> OUT (p (n+m)) = True"
+    proof(induction m)
+      case 0
+      have "OUT(p n) = True" using ap 1 2 outputs_true by auto
+      then show ?case by auto
+    next
+      case (Suc m)
+      then show ?case
+      proof-
+        from Suc.IH have "STATE(p (n+m)) = S_2" sorry
+        show "(\<forall>m'>n. m' \<le> n + Suc m \<longrightarrow> INPUT (p m') = 0) \<longrightarrow> OUT (p (n + Suc m)) = True" sorry
+      qed
+    qed
+  qed
+qed
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+>>>>>>> Stashed changes
 
 
 
