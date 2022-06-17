@@ -82,12 +82,16 @@ definition paths:: "(nat \<Rightarrow> STEP) set" where
 definition specific_path:: "nat \<Rightarrow> STEP" where
 "specific_path n = \<lparr> INPUT = 0,STATE = S_1,OUT = False \<rparr>"
 
+(*show that spec path holds property 1 of paths*)
 lemma spec_path_cond1: "STATE(specific_path(0)) = S_1" using specific_path_def by auto
 
+
+(*show that spec path holds property 2 of paths*)
 lemma spec_path_cond2: "\<forall>n. t(STATE(specific_path n),INPUT(specific_path n)) = (STATE(specific_path(Suc(n))), OUT(specific_path n))"
   by (simp add: specific_path_def)
 
 
+(*show spec paths is in paths*)
 lemma path_in_paths: "specific_path \<in> paths"
 proof-
   from specific_path_def have "specific_path n = \<lparr> INPUT = 0,STATE = S_1,OUT = False \<rparr>" by simp
@@ -98,53 +102,88 @@ proof-
   thus ?thesis.
 qed
 
+(*paths not empty using ^*)
 lemma "paths \<noteq> {}"
   using path_in_paths by auto
 
+
+(*always gonna be a next output*)
 lemma bigger_fish: "\<forall>q\<in>paths. \<forall>m. \<exists>n>m. \<exists>s_0. OUT(q n) = s_0" by auto
 
+
+(*set defn of cyclic_paths*)
 definition cyclic_paths:: "(nat \<Rightarrow> STEP) set" where
 "cyclic_paths \<equiv> {q::(nat\<Rightarrow>STEP). q \<in> paths \<and> ( \<exists>n. \<exists>m. STATE(q n) = STATE(q m))}"
 
-inductive two_cyclic_path:: "(nat \<Rightarrow> STEP) \<Rightarrow> bool" where
-"\<forall>p \<in> paths. \<forall>n. INPUT(p n) = 1 \<Longrightarrow> two_cyclic_path p"
 
-definition two_cyclic_set :: "(nat \<Rightarrow> STEP) set" where
-"two_cyclic_set \<equiv> {p::(nat \<Rightarrow> STEP). two_cyclic_path p}"
-
+(* example of cyclic path that travels between s_1 and s_2 *)
+definition two_cyclic_path:: "(nat \<Rightarrow> STEP) \<Rightarrow> bool" where
+"two_cyclic_path p \<equiv> p\<in> paths \<and> (\<forall>n. INPUT(p n) = 1)"
 
 
-lemma "\<forall>p \<in> paths. \<forall>q \<in> paths. q \<in> two_cyclic_set \<and> p \<in> two_cyclic_set \<longrightarrow> p = q"
+(* work in progress proof*)
+lemma "\<forall>p \<in> paths. (\<forall>n. \<exists>m > n.  INPUT(p m) = 1) \<longrightarrow>  (\<forall>n. \<exists>m > n. OUT(p m) = True)"
 proof
   fix p
   assume p_in_paths: "p \<in> paths"
-  show "\<forall>q\<in>paths. q \<in> two_cyclic_set \<and> p \<in> two_cyclic_set \<longrightarrow> p = q "
+  show "(\<forall>n. \<exists>m > n.  INPUT(p m) = 1) \<longrightarrow>  (\<forall>n. \<exists>m > n.  OUT(p m) = True)"
   proof
-    fix q
-    assume q_in_paths: "q \<in> paths"
-    show "q \<in> two_cyclic_set \<and> p \<in> two_cyclic_set \<longrightarrow> p = q "
+    assume exists_input_1: "\<forall>n. \<exists>m > n.  INPUT(p m) = 1"
+    show "\<forall>n. \<exists>m > n. OUT(p m) = True"
     proof
-      assume q_in_set: "q \<in> two_cyclic_set \<and> p \<in> two_cyclic_set"
-      then have a: "q \<in> two_cyclic_set" and b: " p \<in> two_cyclic_set" by auto
-      show "p = q"
-      proof
-        fix x
-        from b have p_IN: "INPUT(p x) = 1" using two_cyclic_set_def p_in_paths
-          by (metis mem_Collect_eq two_cyclic_path.cases) 
-        from a have q_IN: "INPUT(q x) = 1"  using two_cyclic_set_def p_in_paths
-          by (metis mem_Collect_eq q_in_paths two_cyclic_path.cases)
-        hence equiv_IN:  "INPUT(q x) = INPUT(p x)" using q_IN p_IN by auto
-        from paths_def have  "t(STATE(p x), INPUT(p x)) = (STATE(p (Suc x)), OUT(p x))" using p_in_paths by blast
-        then have p_def: "t(STATE(p x), 1) = (STATE(p (Suc x)), OUT(p x))" using p_IN by simp
-        from paths_def have q_def: "t(STATE(q x), INPUT(q x)) = (STATE(q (Suc x)), OUT(q x))" using q_in_paths by blast
-        then have q_def:  "t(STATE(q x), 1) = (STATE(q (Suc x)), OUT(q x))" using q_IN by simp
-        
-        
-        
-      qed
+      obtain y where "INPUT(p y) = 1" and "y > n"
+        using exists_input_1 by auto
+      then have "t(STATE(p y), INPUT(p y)) = (STATE(p (Suc y)), OUT(p y))" using p_in_paths paths_def by blast
     qed
   qed
 qed
+
+(*if p is 2-cyclic, show that consecutive i/o are never the same*)
+lemma "\<forall>p \<in> paths. two_cyclic_path p \<longrightarrow> (OUT(p n) \<noteq> OUT(p (Suc n))) \<and> (STATE(p n) \<noteq> STATE(p (Suc n)))"
+proof
+  (*break down proof by fixing and assuming p*)
+  fix p
+  assume p_in_paths: "p \<in> paths"
+  show "two_cyclic_path p \<longrightarrow> OUT (p n) \<noteq> OUT (p (Suc n)) \<and> (STATE(p n) \<noteq> STATE(p (Suc n)))"
+  proof
+    assume p_two_cyclic: "two_cyclic_path p"
+    (*consider state 1 and state 2*)
+    consider (1) "STATE(p n) = S_1" | (2) "STATE(p n) = S_2"
+    using State.exhaust by blast
+    then show "OUT (p n) \<noteq> OUT (p (Suc n)) \<and> (STATE(p n) \<noteq> STATE(p (Suc n)))"
+    proof(cases)
+      case 1
+         (*definitions*)
+         from paths_def have p_paths: "t(S_1, 1) = (STATE(p (Suc n)), OUT(p n))"
+           by (metis (mono_tags, lifting) "1" mem_Collect_eq p_two_cyclic two_cyclic_path_def)
+         then have "(S_2, True) = (STATE(p (Suc n)), OUT(p n))" by simp
+         then have suc_state: "STATE(p (Suc n)) = S_2" and p_out: "OUT(p n) = True" by simp+
+         from paths_def suc_state have "t(S_2, 1) = (STATE(p(Suc (Suc n))), OUT(p (Suc n)))"
+           by (metis (mono_tags, lifting) mem_Collect_eq p_two_cyclic two_cyclic_path_def)
+         then have "(S_1, False) = (STATE(p(Suc (Suc n))), OUT(p (Suc n)))"
+           by simp
+         then have suc_out: "OUT(p (Suc n)) = False" by simp
+         from suc_state 1 suc_out p_out have triv: "(OUT(p (Suc n)) \<noteq>  OUT(p n)) \<and> (STATE(p (Suc n)) \<noteq> STATE(p n))" by auto
+         thus "OUT (p n) \<noteq> OUT (p (Suc n)) \<and> STATE (p n) \<noteq> (STATE (p (Suc n)))" using triv by auto 
+    next
+      case 2
+      (*same as ^ with states switched*)
+      from paths_def have p_paths: "t(S_2, 1) = (STATE(p (Suc n)), OUT(p n))"
+           by (metis (mono_tags, lifting) "2" mem_Collect_eq p_two_cyclic two_cyclic_path_def)
+         then have "(S_1, False) = (STATE(p (Suc n)), OUT(p n))" by simp
+         then have suc_state: "STATE(p (Suc n)) = S_1" and p_out: "OUT(p n) = False" by simp+
+         from paths_def suc_state have "t(S_1, 1) = (STATE(p(Suc (Suc n))), OUT(p (Suc n)))"
+           by (metis (mono_tags, lifting) mem_Collect_eq p_two_cyclic two_cyclic_path_def)
+         then have "(S_2, True) = (STATE(p(Suc (Suc n))), OUT(p (Suc n)))"
+           by simp
+         then have suc_out: "OUT(p (Suc n)) = True" by simp
+         from suc_state 2 suc_out p_out have triv: "(OUT(p (Suc n)) \<noteq>  OUT(p n)) \<and> (STATE(p (Suc n)) \<noteq> STATE(p n))" by auto
+         thus "OUT (p n) \<noteq> OUT (p (Suc n)) \<and> STATE (p n) \<noteq> (STATE (p (Suc n)))" using triv by auto 
+       qed
+     qed
+   qed
+
+(*show cyclic paths not empty using spec path*)
 lemma cyclic_paths_not_empty: "cyclic_paths \<noteq> {}"
 proof
   fix n
@@ -163,6 +202,9 @@ proof
   from 4 0 show "False" by auto
 qed
 
+(*show that if a path starts in s_1 at some time point
+ then moves to s_2 then if it only has input 0 for
+ some interval then it will stay in s_2 for that interval [useful for proving the security lemma]*)
 lemma stays_in_s_2: "\<forall>p \<in> paths. STATE(p n) = S_1 \<and> INPUT(p n) > 0 \<and> (\<forall>j. j \<in> {n<..<m} \<longrightarrow> INPUT(p j) = 0)  \<and> i \<in> {n<..<m}\<longrightarrow> STATE(p i) = S_2"
 proof
   fix p
@@ -210,7 +252,7 @@ proof
     qed
   qed
 
-
+(*same as ^ but for s1*)
 lemma stays_in_s_1: "\<forall>p \<in> paths. STATE(p n) = S_2 \<and> INPUT(p n) > 0 \<and> (\<forall>j. j \<in> {n<..<m} \<longrightarrow> INPUT(p j) = 0)  \<and> i \<in> {n<..<m}\<longrightarrow> STATE(p i) = S_1"
   proof
   fix p
@@ -257,6 +299,7 @@ lemma stays_in_s_1: "\<forall>p \<in> paths. STATE(p n) = S_2 \<and> INPUT(p n) 
         qed
     qed
   qed
+
 
 lemma security_s1_to_s2: "\<forall>p \<in> paths. STATE(p n) = S_1 \<and> INPUT(p n) > 0 \<and> (\<forall>j. j \<in> {n<..<m} \<longrightarrow> INPUT(p j) = 0) \<and> i \<in> {n<..<m} \<longrightarrow> OUT(p i) = True"
 proof
