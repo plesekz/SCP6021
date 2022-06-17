@@ -93,7 +93,7 @@ proof-
   from specific_path_def have "specific_path n = \<lparr> INPUT = 0,STATE = S_1,OUT = False \<rparr>" by simp
   then have 1: "STATE(specific_path 0) = S_1" by (simp add: spec_path_cond1)
   then have 2: "\<forall>n. t(STATE(specific_path n),INPUT(specific_path n)) = (STATE(specific_path(Suc(n))), OUT(specific_path n))" using spec_path_cond2 by auto
-  hence "STATE(specific_path 0) = INITIAL_NODE \<and> (\<forall>n. t(STATE(specific_path n),INPUT(specific_path n)) = (STATE(specific_path(Suc(n))), OUT(specific_path n)))" by (simp add: spec_path_cond1)
+  hence "STATE(specific_path 0) = INITIAL_NODE \<and> (\<forall>n. t(STATE(specific_path n),INPUT(specific_path n)) = (STATE(specific_path(Suc(n))), OUT(specific_path n)))" sorry
   hence 3: "specific_path \<in> paths" using paths_def by auto
   thus ?thesis.
 qed
@@ -111,9 +111,6 @@ inductive two_cyclic_path:: "(nat \<Rightarrow> STEP) \<Rightarrow> bool" where
 
 definition two_cyclic_set :: "(nat \<Rightarrow> STEP) set" where
 "two_cyclic_set \<equiv> {p::(nat \<Rightarrow> STEP). two_cyclic_path p}"
-
-
-
 
 lemma cyclic_paths_not_empty: "cyclic_paths \<noteq> {}"
 proof
@@ -133,145 +130,6 @@ proof
   from 4 0 show "False" by auto
 qed
 
-lemma stays_in_s_2: "\<forall>p \<in> paths. STATE(p n) = S_1 \<and> INPUT(p n) > 0 \<and> (\<forall>j. j \<in> {n<..<m} \<longrightarrow> INPUT(p j) = 0)  \<and> i \<in> {n<..<m}\<longrightarrow> STATE(p i) = S_2"
-proof
-  fix p
-  assume base: "p\<in>paths"
-  show "STATE (p n) = S_1 \<and> 0 < INPUT (p n) \<and> (\<forall>j. j \<in> {n<..<m} \<longrightarrow> INPUT (p j) = 0) \<and> i \<in> {n<..<m} \<longrightarrow> STATE (p i) = S_2"
-  proof (induction i)
-    case 0
-      then show ?case
-        by simp
-    next
-      case (Suc i)
-      show ?case
-      proof
-        assume LHS: "STATE (p n) = S_1 \<and> 0 < INPUT (p n) \<and> (\<forall>j. j \<in> {n<..<m} \<longrightarrow> INPUT (p j) = 0) \<and> Suc i \<in> {n<..<m}"
-        then have a: "STATE (p n) = S_1" 
-        and b: "0 < INPUT (p n)"
-        and c: " (\<forall>j. j \<in> {n<..<m} \<longrightarrow> INPUT (p j) = 0)"
-        and d: "Suc i \<in> {n<..<m}" by auto
-        then consider "Suc i = Suc n" | "Suc i \<noteq> Suc n" by auto
-        then show "STATE (p (Suc i)) = S_2"
-        proof (cases)
-          case 1
-          then have 0: "STATE(p i) = S_1" using a by simp
-          from b have 2: "INPUT(p i) > 0" using 1 by simp
-          from paths_def 2 0 have "(S_2, True) = (STATE(p (Suc i)), OUT(p i))"
-            by (smt (verit) base gr0_implies_Suc mem_Collect_eq t.simps(2)) 
-          then have "STATE(p (Suc i)) = S_2" by simp
-          then show ?thesis.
-        next
-          case 2
-          have a_2: "STATE (p n) = S_1 \<and> 0 < INPUT (p n) \<and> (\<forall>j. j \<in> {n<..<m} \<longrightarrow> INPUT (p j) = 0)" using a b c by simp
-          also have d_2: "i \<in> {n<..<m}"
-            using "2" LHS by force
-          hence IH: "STATE(p i) = S_2"
-          using LHS Suc by fastforce
-          hence "INPUT(p i) = 0" using a_2 d_2 by simp
-          hence "t(STATE(p i), INPUT(p i)) = (STATE(p(Suc i)), OUT(p i))" using paths_def base by blast
-          hence "t(S_2, 0) = (STATE(p(Suc i)), OUT(p i))" using IH
-            by (simp add: \<open>INPUT (p i) = 0\<close>)
-          hence "(STATE(p (Suc i)), OUT(p i)) = (S_2, True)" by simp
-          hence "STATE(p (Suc i)) = S_2" by simp
-          thus ?thesis.  
-        qed
-        qed
-    qed
-  qed
-
-
-lemma stays_in_s_1: "\<forall>p \<in> paths. STATE(p n) = S_2 \<and> INPUT(p n) > 0 \<and> (\<forall>j. j \<in> {n<..<m} \<longrightarrow> INPUT(p j) = 0)  \<and> i \<in> {n<..<m}\<longrightarrow> STATE(p i) = S_1"
-  proof
-  fix p
-  assume base: "p\<in>paths"
-  show "STATE (p n) = S_2 \<and> 0 < INPUT (p n) \<and> (\<forall>j. j \<in> {n<..<m} \<longrightarrow> INPUT (p j) = 0) \<and> i \<in> {n<..<m} \<longrightarrow> STATE (p i) = S_1"
-  proof (induction i)
-    case 0
-      then show ?case
-        by simp
-    next
-      case (Suc i)
-      show ?case
-      proof
-        assume LHS: "STATE (p n) = S_2 \<and> 0 < INPUT (p n) \<and> (\<forall>j. j \<in> {n<..<m} \<longrightarrow> INPUT (p j) = 0) \<and> Suc i \<in> {n<..<m}"
-        then have a: "STATE (p n) = S_2" 
-        and b: "0 < INPUT (p n)"
-        and c: " (\<forall>j. j \<in> {n<..<m} \<longrightarrow> INPUT (p j) = 0)"
-        and d: "Suc i \<in> {n<..<m}" by auto
-        then consider "Suc i = Suc n" | "Suc i \<noteq> Suc n" by auto
-        then show "STATE (p (Suc i)) = S_1"
-        proof (cases)
-          case 1
-          then have 0: "STATE(p i) = S_2" using a by simp
-          from b have 2: "INPUT(p i) > 0" using 1 by simp
-          from paths_def 2 0 have "(S_1, False) = (STATE(p (Suc i)), OUT(p i))"
-          by (smt (verit) base gr0_implies_Suc mem_Collect_eq t.simps(4)) 
-          then have "STATE(p (Suc i)) = S_1" by simp
-          then show ?thesis.
-        next
-          case 2
-          have a_2: "STATE (p n) = S_2 \<and> 0 < INPUT (p n) \<and> (\<forall>j. j \<in> {n<..<m} \<longrightarrow> INPUT (p j) = 0)" using a b c by simp
-          also have d_2: "i \<in> {n<..<m}"
-            using "2" LHS by force
-          hence IH: "STATE(p i) = S_1"
-          using LHS Suc by fastforce
-          hence "INPUT(p i) = 0" using a_2 d_2 by simp
-          hence "t(STATE(p i), INPUT(p i)) = (STATE(p(Suc i)), OUT(p i))" using paths_def base by blast
-          hence "t(S_1, 0) = (STATE(p(Suc i)), OUT(p i))" using IH
-            by (simp add: \<open>INPUT (p i) = 0\<close>)
-          hence "(STATE(p (Suc i)), OUT(p i)) = (S_1, False)" by simp
-          hence "STATE(p (Suc i)) = S_1" by simp
-          thus ?thesis.  
-        qed
-        qed
-    qed
-  qed
-
-lemma security_s1_to_s2: "\<forall>p \<in> paths. STATE(p n) = S_1 \<and> INPUT(p n) > 0 \<and> (\<forall>j. j \<in> {n<..<m} \<longrightarrow> INPUT(p j) = 0) \<and> i \<in> {n<..<m} \<longrightarrow> OUT(p i) = True"
-proof
-  fix p
-  assume p_in_paths: "p\<in>paths"
-  show "STATE (p n) = S_1 \<and> 0 < INPUT (p n) \<and> (\<forall>j. j \<in> {n<..<m} \<longrightarrow> INPUT (p j) = 0) \<and> i \<in> {n<..<m} \<longrightarrow> OUT (p i) = True"
-  proof
-    assume LHS: "STATE (p n) = S_1 \<and> 0 < INPUT (p n) \<and> (\<forall>j. j \<in> {n<..<m} \<longrightarrow> INPUT (p j) = 0) \<and> i \<in> {n<..<m}"
-    show "OUT(p i) = True"
-    proof-
-      from LHS have a: "STATE (p n) = S_1" 
-        and b: "0 < INPUT (p n)"
-        and c: " (\<forall>j. j \<in> {n<..<m} \<longrightarrow> INPUT (p j) = 0)"
-        and d: "i \<in> {n<..<m}"
-          by auto
-      from d c have i_input: "INPUT(p i) = 0" by blast
-      from paths_def have "t(STATE(p i), INPUT(p i)) = (STATE(p(Suc i)), OUT(p i))" using p_in_paths by blast
-      then have "t(S_2, 0) = (STATE(p(Suc i)), OUT(p i))" using i_input stays_in_s_2
-          by (metis LHS p_in_paths)
-        then have final: "OUT(p i) = True" by simp
-        then show ?thesis.    
-      qed
-    qed
-  qed
-
-
-lemma security_s2_to_s1: "\<forall>p \<in> paths. STATE(p n) = S_2 \<and> INPUT(p n) > 0 \<and> (\<forall>j. j \<in> {n<..<m} \<longrightarrow> INPUT(p j) = 0) \<and> i \<in> {n<..<m} \<longrightarrow> OUT(p i) = False"
-proof
-  fix p
-  assume p_in_paths: "p \<in> paths"
-  show "STATE(p n) = S_2 \<and> INPUT(p n) > 0 \<and> (\<forall>j. j \<in> {n<..<m} \<longrightarrow> INPUT(p j) = 0) \<and> i \<in> {n<..<m} \<longrightarrow> OUT(p i) = False"
-  proof
-    assume LHS: "STATE(p n) = S_2 \<and> INPUT(p n) > 0 \<and> (\<forall>j. j \<in> {n<..<m} \<longrightarrow> INPUT(p j) = 0) \<and> i \<in> {n<..<m}"
-    show "OUT(p i) = False"
-    proof-
-      from LHS have a: "STATE(p n) = S_2" and b: "INPUT(p n) > 0" and c: "(\<forall>j. j \<in> {n<..<m} \<longrightarrow> INPUT(p j) = 0)" and d:  "i \<in> {n<..<m}" by auto
-      from d c have i_input: "INPUT(p i) = 0" by blast
-      from paths_def have "t(STATE(p i), INPUT(p i)) = (STATE(p(Suc i)), OUT(p i))" using p_in_paths by blast
-      then have "t(S_1, 0) = (STATE(p(Suc i)), OUT(p i))" using i_input stays_in_s_2
-        by (metis LHS p_in_paths stays_in_s_1)
-        then have final: "OUT(p i) = False" by simp
-        then show ?thesis.    
-      qed
-    qed
-  qed
 
 lemma usf_simp: "i>0 \<Longrightarrow> t(st, i) = t(st, 1)"
   by (metis One_nat_def State.exhaust gr0_implies_Suc t.simps(2) t.simps(4))
@@ -406,7 +264,7 @@ proof
       case (Suc m)
       then show ?case
       proof-
-        from Suc.IH have "STATE(p (n+m)) = S_2" sorry
+        from Suc.IH have "STATE(p (n+m)) = S_2" using y'all sorry
         show "(\<forall>m'>n. m' \<le> n + Suc m \<longrightarrow> INPUT (p m') = 0) \<longrightarrow> OUT (p (n + Suc m)) = True" sorry
       qed
     qed
