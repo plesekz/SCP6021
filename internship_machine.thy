@@ -195,25 +195,25 @@ proof
 qed
 
 lemma y'all: "\<forall>p \<in> paths. STATE(p n) = S_1 \<and> INPUT(p n) > 0 \<and>
-               (\<forall>j. j \<in> {n..m} \<longrightarrow> INPUT(p j) = 0) \<longrightarrow>  i \<in> {n..m} \<longrightarrow> STATE(p i) = S_2"
+               (\<forall>j. j \<in> {n<..m} \<longrightarrow> INPUT(p j) = 0) \<longrightarrow>  i \<in> {n<..m} \<longrightarrow> STATE(p i) = S_2"
 proof
   fix p
   assume pa: "p\<in>paths"
-  show "STATE(p n) = S_1 \<and> INPUT(p n) > 0 \<and>(\<forall>j. j \<in> {n..m} \<longrightarrow> INPUT(p j) = 0) \<longrightarrow> i \<in> {n..m}\<longrightarrow> STATE(p i) = S_2"
+  show "STATE(p n) = S_1 \<and> INPUT(p n) > 0 \<and>(\<forall>j. j \<in> {n<..m} \<longrightarrow> INPUT(p j) = 0) \<longrightarrow> i \<in> {n<..m}\<longrightarrow> STATE(p i) = S_2"
   proof
-    assume as1: "STATE(p n) = S_1 \<and> INPUT(p n) > 0 \<and>(\<forall>j. j \<in> {n..m} \<longrightarrow> INPUT(p j) = 0)"
+    assume as1: "STATE(p n) = S_1 \<and> INPUT(p n) > 0 \<and>(\<forall>j. j \<in> {n<..m} \<longrightarrow> INPUT(p j) = 0)"
     then have
         1: "STATE(p n) = S_1" and
         2: "INPUT(p n) > 0" and
-        3: "\<forall>j. j \<in> {n..m} \<longrightarrow> INPUT(p j) = 0" by auto
-    show "i \<in> {n..m}\<longrightarrow> STATE(p i) = S_2"
+        3: "\<forall>j. j \<in> {n<..m} \<longrightarrow> INPUT(p j) = 0" by auto
+    show "i \<in> {n<..m}\<longrightarrow> STATE(p i) = S_2"
     proof(induction i)
       case 0
-      then show ?case using 1 2 3 by fastforce
+      then show ?case using 1 2 3 by simp
     next
       case (Suc i)
       then show ?case
-        by (metis Suc_leD as1 atLeastAtMost_iff le_SucE pa stays_in_s2 zero_less_iff_neq_zero)
+        by (metis Suc_leD as1 enters_s2 greaterThanAtMost_iff less_SucE pa stays_in_s2)
     qed
   qed
 qed
@@ -238,6 +238,28 @@ proof
   qed
 qed
 
+lemma also_outputs_true: "\<forall>p \<in> paths. ((STATE(p n) = S_2) \<and> (INPUT(p n) = 0)) \<longrightarrow> (OUT(p n) = True)"
+proof
+  fix p
+  assume pa: "p\<in>paths"
+  show "STATE(p n) = S_2 \<and> INPUT(p n) = 0  \<longrightarrow> OUT(p n) = True"
+  proof
+    assume inp: "STATE(p n) = S_2 \<and> INPUT(p n) = 0"
+    then have 1: "STATE(p n) = S_2" and 2: "INPUT(p n) = 0" by auto
+    
+    from paths_def have 3: "\<forall>n. t (STATE (p n), INPUT (p n)) = (STATE (p (Suc n)), OUT (p n))" using pa by auto
+    then have 4: "snd(t(STATE (p n), INPUT (p n))) = OUT(p n)" by simp
+
+    from t.simps have "t (S_2, 0) = (S_2, True)" using usf_simp by simp
+    then have "t(STATE(p n), INPUT(p n)) = (S_2, True)" by (simp add: "1" "2" usf_simp)
+    then have "snd(t(STATE(p n), INPUT(p n))) = True" by auto
+
+    then show "OUT(p n) = True" using 1 2 4 by auto
+  qed
+qed
+
+lemma sets_and_bounds: "(\<forall>m'>n. m' \<le> (n+m) \<longrightarrow>  m'\<in> {n<..(n+m)})" by simp
+
 lemma lower_bound:
  "\<forall>p\<in>paths. (STATE(p n) = S_1) \<and> (INPUT(p n) > 0)
    \<longrightarrow> ((\<forall>m'>n. m'\<le> (n+m) \<longrightarrow> (INPUT(p m') = 0)) \<longrightarrow> (OUT(p (n+m)) = True))"
@@ -254,19 +276,15 @@ proof
           2: "0 < INPUT (p n)"
       by auto
     have next_one:"STATE(p (Suc n)) = S_2" using 1 2 enters_s2 ap by auto
+    have  out_one:  "OUT(p (n)) = True" using 1 2 ap paths_def outputs_true by auto
 
     show "(\<forall>m'>n. m' \<le> (n+m) \<longrightarrow> INPUT (p m') = 0) \<longrightarrow> OUT (p (n+m)) = True"
-    proof(induction m)
-      case 0
-      have "OUT(p n) = True" using ap 1 2 outputs_true by auto
-      then show ?case by auto
-    next
-      case (Suc m)
-      then show ?case
-      proof-
-        from Suc.IH have "STATE(p (n+m)) = S_2" using y'all sorry
-        show "(\<forall>m'>n. m' \<le> n + Suc m \<longrightarrow> INPUT (p m') = 0) \<longrightarrow> OUT (p (n + Suc m)) = True" sorry
-      qed
+    proof
+      assume 3: "(\<forall>m'>n. m' \<le> (n+m) \<longrightarrow> INPUT (p m') = 0)"
+      then have "(\<forall>m'. m'\<in> {n<..(n+m)} \<longrightarrow> INPUT (p m') = 0)" using sets_and_bounds by auto
+      then have "(\<forall>m'. m'\<in> {n<..(n+m)} \<longrightarrow> STATE (p m') = S_2)" using as ap y'all by auto
+      then show "OUT (p (n+m)) = True" using 3 out_one also_outputs_true ap
+      by (metis add.right_neutral less_add_same_cancel1 nat_le_linear not_gr_zero sets_and_bounds)
     qed
   qed
 qed
