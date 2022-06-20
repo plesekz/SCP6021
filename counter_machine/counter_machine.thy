@@ -25,10 +25,10 @@ COUNT::COUNT
 
 
 fun t:: "(INPUT_A \<times> INPUT_B \<times> STATE \<times> COUNT) \<Rightarrow> (OUT \<times> STATE \<times> COUNT)" where
-"t (True, True, S, C) = (Some(Suc C),S, 0::nat)"|
-"t(True, False, S, C) = (None, S, Suc C)"|
-"t(False, True, S, C) = ((Some C), S, 0::nat)"|
-"t(False,False, S, C) = (None, S, C)"
+"t( True, True,  S, C) = (Some(Suc C),S, 0::nat)"|
+"t( True, False, S, C) = (None, S, Suc C)"|
+"t(False, True,  S, C) = ((Some C), S, 0::nat)"|
+"t(False, False, S, C) = (None, S, C)"
 
 definition paths:: "(nat \<Rightarrow> STEP) set" where
 "paths \<equiv> {p::(nat\<Rightarrow>STEP). STATE(p 0) = INIT_NODE \<and> (\<forall>n. t(I_A(p(n)), I_B (p(n)), STATE(p(n)), COUNT(p(n))) = (OUT(p(n)), STATE(p(Suc n)), COUNT(p(Suc n))))}"
