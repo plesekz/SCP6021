@@ -8,7 +8,6 @@ datatype State = S_1 | S_2
 definition \<Sigma> :: "State set" where
 "\<Sigma> = {S_1, S_2}"
 
-
 type_synonym INPUT = nat
 type_synonym OUT =  bool
 
@@ -24,20 +23,16 @@ fun t:: "State \<times> INPUT \<Rightarrow> State \<times> OUT" where
 "t (S_2, 0) = (S_2, True)"|
 "t (S_2, n) = (S_1, False) "
 
-
-
 definition INITIAL_NODE:: State where
 "INITIAL_NODE = S_1"
 (* Mesh topology properties*)
 lemma no_dead_ends: "\<forall>s \<in> \<Sigma>. \<exists>i j. fst(t(s,i)) = j"
   by auto
 
-
   (*check whether there is a path leading between two nodes*)
 inductive path::"INPUT list \<Rightarrow> State \<Rightarrow> State \<Rightarrow> bool" where
 "fst(t (initial, i)) = current \<Longrightarrow> path [i] initial current"|
 "path [i] initial node \<Longrightarrow> path is node current  \<Longrightarrow> path (i#is) initial current"
-
 
    (*general path through mesh from the initial node*)
 inductive valid_path::"nat \<Rightarrow> STEP \<Rightarrow> bool" where
@@ -72,8 +67,6 @@ inductive machine_interconnectivness:: "bool" where
 inductive group_interconnectivness:: "State set \<Rightarrow> bool" where
 "\<forall>node::State\<in>S. \<forall>onode\<in>(S-set [(node::State)]). \<exists>i::INPUT. \<exists>out::OUT. (t (node,(i)) = (onode,out)) \<Longrightarrow> group_interconnectivness S"
 
-
-
 (*set of all paths*)
 definition paths:: "(nat \<Rightarrow> STEP) set" where
 "paths \<equiv> {p::(nat \<Rightarrow> STEP). STATE(p(0)) = INITIAL_NODE \<and> (\<forall>n. t(STATE(p n),INPUT(p n)) = (STATE(p(Suc(n))), OUT(p n)))}"
@@ -86,7 +79,6 @@ lemma spec_path_cond1: "STATE(specific_path(0)) = S_1" using specific_path_def b
 
 lemma spec_path_cond2: "\<forall>n. t(STATE(specific_path n),INPUT(specific_path n)) = (STATE(specific_path(Suc(n))), OUT(specific_path n))"
   by (simp add: specific_path_def)
-
 
 lemma path_in_paths: "specific_path \<in> paths"
 proof-
@@ -130,10 +122,8 @@ proof
   from 4 0 show "False" by auto
 qed
 
-
 lemma usf_simp: "i>0 \<Longrightarrow> t(st, i) = t(st, 1)"
   by (metis One_nat_def State.exhaust gr0_implies_Suc t.simps(2) t.simps(4))
-
 
 (* declare [[simp_trace]] *)
 lemma enters_s2_base: "\<forall>p \<in> paths. STATE(p 0) = S_1 \<and> INPUT(p 0) > 0 \<longrightarrow> STATE(p(Suc 0)) = S_2"
@@ -260,7 +250,7 @@ qed
 
 lemma sets_and_bounds: "(\<forall>m'>n. m' \<le> (n+m) \<longrightarrow>  m'\<in> {n<..(n+m)})" by simp
 
-lemma lower_bound:
+lemma security:
  "\<forall>p\<in>paths. (STATE(p n) = S_1) \<and> (INPUT(p n) > 0)
    \<longrightarrow> ((\<forall>m'>n. m'\<le> (n+m) \<longrightarrow> (INPUT(p m') = 0)) \<longrightarrow> (OUT(p (n+m)) = True))"
         (*m'\<in> {n..(n+m)} *)
@@ -288,7 +278,5 @@ proof
     qed
   qed
 qed
-
-
 
 end
