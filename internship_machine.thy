@@ -41,7 +41,7 @@ inductive path::"INPUT list \<Rightarrow> State \<Rightarrow> State \<Rightarrow
 
    (*general path through mesh from the initial node*)
 inductive valid_path::"nat \<Rightarrow> STEP \<Rightarrow> bool" where
-"valid_path 0 \<lparr>INPUT = i, STATE = INITIAL_NODE, OUT = snd(t(S_1, i))\<rparr>"|
+"valid_path 0 \<lparr>INPUT = i, STATE = INITIAL_NODE, OUT = snd(t(INITIAL_NODE, i))\<rparr>"|
 "\<exists>i::nat. valid_path n \<lparr>INPUT = i, STATE = s, OUT = snd(t(s,i))\<rparr> \<Longrightarrow> valid_path (Suc n) \<lparr> INPUT = j, STATE = fst(t(s,i)), OUT = snd(t(fst(t(s,i)), j)) \<rparr>"
 
   (*Node is cyclic, if there is at least one such path in which it features more than once.*)
@@ -76,7 +76,7 @@ inductive group_interconnectivness:: "State set \<Rightarrow> bool" where
 
 (*set of all paths*)
 definition paths:: "(nat \<Rightarrow> STEP) set" where
-"paths \<equiv> {p::(nat \<Rightarrow> STEP). STATE(p(0)) = S_1 \<and> (\<forall>n. t(STATE(p n),INPUT(p n)) = (STATE(p(Suc(n))), OUT(p n)))}"
+"paths \<equiv> {p::(nat \<Rightarrow> STEP). STATE(p(0)) = INITIAL_NODE \<and> (\<forall>n. \<exists>i. t(STATE(p n),i) = (STATE(p(Suc(n))), OUT(p n)))}"
 
 (*very simple S_1 loop*)
 definition specific_path:: "nat \<Rightarrow> STEP" where
