@@ -24,7 +24,7 @@ COUNTER::COUNT
 
 
 fun t:: "(INPUT_A \<times> INPUT_B \<times> STATE \<times> COUNT) \<Rightarrow> (OUT \<times> STATE \<times> COUNT)" where
-"t (True, True, S, C) = (Some(Suc C),S, 0::nat)"|
+"t (True, True, S, C) = (Some(Suc C),S, Suc 0::nat)"|
 "t(True, False, S, C) = (None, S, Suc C)"|
 "t(False, True, S, C) = ((Some C), S, 0::nat)"|
 "t(False,False, S, C) = (None, S, C)"
@@ -109,7 +109,7 @@ proof
           using \<open>n < n'\<close> by auto
           moreover have "... = count p n (n' - n) + 1"
             using \<open>I_A (p n') = True \<and> I_B (p n') = False\<close> by auto
-          moreover have "... = Suc (count p n (n' -n))" by simp
+          moreover have "... = Suc (count p n (n' - n))" by simp
           ultimately show ?thesis by auto
         qed
       qed
@@ -219,57 +219,9 @@ proof
               using \<open>n < Suc n'\<close> by auto
           next
             case c
-           (* from Suc.IH have "n<n'\<longrightarrow> I_A (p n) = True \<and> (\<forall>j. j \<in> {n<..<n'} \<longrightarrow> I_B (p j) = False) \<longrightarrow> COUNTER (p n') = count p n (n' - n)" by auto
-            then have "False\<longrightarrow> I_A (p n) = True \<and> (\<forall>j. j \<in> {n<..<n'} \<longrightarrow> I_B (p j) = False) \<longrightarrow> COUNTER (p n') = count p n (n' - n)" using c by auto
-            then have "False \<longrightarrow> COUNTER (p n') = count p n (n' - n)" by auto
-            *)
-            have "{n<..<n'} = {}" using c by auto
-            hence "\<forall>j. j \<notin> {n<..<n'}" by auto
-
-            hence IH: "COUNTER (p n') = count p n (n' - n)" sorry
-            have "count p n (Suc n' - n) = count p n (Suc 0)"
-            by (simp add: c)
-            then have "... = count p n 0 +  (if(I_A(p (n')) = True) then 1 else 0)"  using c by simp
-            then have 0: "count p n (Suc n' - n) =  (if(I_A(p (n')) = True) then 1 else 0)"
-            by (simp add: \<open>count p n (Suc n' - n) = count p n (Suc 0)\<close>)
-            moreover have "t(I_A(p n'), I_B(p n'), S1, COUNTER(p n')) = (OUT(p n'), S1, COUNTER(p (Suc n)))" using paths_def base
-              by (smt (verit) all_p_s1 c mem_Collect_eq)
-            moreover have t_p_c:  "t(I_A(p n'), I_B(p n'), S1, 0) = (OUT(p n'), S1, COUNTER(p (Suc n)))" using IH
-            calculation(2)
-              by (simp add: c)
-            then consider (TT) "I_A(p(n')) =  True \<and> I_B (p(n')) = True "
-              |(TF) "I_A(p(n')) =  True \<and> I_B (p(n')) = False"
-              |(FF) "I_A(p(n')) =  False \<and> I_B (p(n')) = False"
-              |(FT) "I_A(p(n')) =  False \<and> I_B (p(n')) = True"
-              by blast
-            then show ?thesis
-            proof cases
-              case TT
-              then have "t(True, True, S1, 0) = (OUT(p n'), S1, COUNTER(p (Suc n')))" using t_p_c
-              by (simp add: c)
-              then have "COUNTER(p (Suc n')) = 0"
-              by (simp add: c)
-              then show ?thesis sorry
-            next
-              case TF
-              then have "t(True, False, S1, 0) = (OUT(p n'), S1, COUNTER(p (Suc n')))" using t_p_c by (simp add: c)
-              then have "(None, S1, 1) =  (OUT(p n'), S1, COUNTER(p (Suc n')))" by simp
-              then have "COUNTER(p (Suc n')) = 1" by simp
-              then have "count p n (Suc n' - n) =  1"
-              by (meson "0" TF)
-              then show ?thesis
-              by (simp add: \<open>COUNTER (p (Suc n')) = 1\<close>)
-            next
-              case FF
-              then show ?thesis 
-                using a_1 c by auto
-            next
-              case FT
-              then show ?thesis
-                using a_1 c by auto
-            qed
-            
-            
+            then have RHS: "count p n 1 = 1"
+              using a_1 by auto
+            moreover have LHS: "t(I_A(p (Suc n')), I_B(p (Suc n')), S1, COUNTER(p"
           qed
       qed
     qed
