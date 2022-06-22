@@ -221,11 +221,12 @@ proof
             case c
             then have RHS: "count p n 1 = 1"
               using a_1 by auto
-            moreover have LHS: "t(I_A(p (Suc n')), I_B(p (Suc n')), S1, COUNTER(p"
+            moreover have LHS: "t(I_A(p (Suc n')), I_B(p (Suc n')), S1, COUNTER(p" sorry
+            show ?thesis sorry
           qed
+        qed
       qed
     qed
-    
   qed
 qed
 
