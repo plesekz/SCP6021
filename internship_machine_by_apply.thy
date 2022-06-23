@@ -33,12 +33,14 @@ lemma no_dead_ends: "\<forall>s \<in> \<Sigma>. \<exists>i j. fst(t(s,i)) = j"
   by auto
 
 definition paths:: "(nat \<Rightarrow> STEP) set" where
-"paths \<equiv> {p::(nat \<Rightarrow> STEP). STATE(p(0)) = INITIAL_NODE \<and> (\<forall>n. \<exists>i. t(STATE(p n),i) = (STATE(p(Suc(n))), OUT(p n)))}"
+"paths \<equiv> {p::(nat \<Rightarrow> STEP). STATE(p(0)) = INITIAL_NODE \<and> (\<forall>n. t(STATE(p n),INPUT (p n)) = (STATE(p(Suc(n))), OUT(p n)))}"
 
 lemma stays_in_s_2: "\<forall>p \<in> paths. STATE(p n) = S_1 \<and> INPUT(p n) > 0 \<and> (\<forall>j. j \<in> {n<..<m} \<longrightarrow> INPUT(p j) = 0)  \<and> i \<in> {n<..<m}\<longrightarrow> STATE(p i) = S_2"
-  apply(rule)
-  apply(auto)
-  apply(induction i)
+  apply (induction i,simp)
+  apply (case_tac "Suc i = Suc n")
+  apply (auto simp add: paths_def)
+  apply (metis gr0_conv_Suc old.prod.inject t.simps(2))
+  by (metis Pair_inject Suc_lessD less_antisym t.simps(3))
 
   (*gotta expand the state now*)
   
