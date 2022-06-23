@@ -36,7 +36,11 @@ definition paths:: "(nat \<Rightarrow> STEP) set" where
 "paths \<equiv> {p::(nat \<Rightarrow> STEP). STATE(p(0)) = INITIAL_NODE \<and> (\<forall>n. \<exists>i. t(STATE(p n),i) = (STATE(p(Suc(n))), OUT(p n)))}"
 
 lemma stays_in_s_2: "\<forall>p \<in> paths. STATE(p n) = S_1 \<and> INPUT(p n) > 0 \<and> (\<forall>j. j \<in> {n<..<m} \<longrightarrow> INPUT(p j) = 0)  \<and> i \<in> {n<..<m}\<longrightarrow> STATE(p i) = S_2"
-  apply()
-  done
+  apply(rule)
+  apply(auto)
+  apply(induction i)
+
+  (*gotta expand the state now*)
+  
 
 end
