@@ -1,7 +1,6 @@
 theory counter_machine
-  imports Main
+  imports Main "HOL-Eisbach.Eisbach"
 begin
-
 
 datatype State = S1
 
@@ -40,7 +39,6 @@ definition simple_path:: "path" where
 
 
 (*prove that paths is not empty*)
-
 lemma "paths \<noteq> {}"
 proof
   assume init_assm: "paths = {}"
@@ -59,6 +57,8 @@ proof
     thus "False" using init_assm paths_def by fastforce
   qed
 qed
+
+
 
 
 fun count:: "path \<Rightarrow> nat \<Rightarrow> nat \<Rightarrow> nat" where
@@ -85,8 +85,6 @@ next
   moreover have "... = Suc n" by auto
   ultimately show ?case by auto
 qed
-
-
 
 lemma tf_count_assoc: "\<forall>p \<in> paths. \<forall>n < n'.  I_A(p(n')) =  True \<and> I_B (p(n')) = False \<longrightarrow>  Suc(count p n (n' - n)) =  (count p n (Suc n' - n))"
 proof

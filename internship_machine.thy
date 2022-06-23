@@ -76,7 +76,7 @@ inductive group_interconnectivness:: "State set \<Rightarrow> bool" where
 
 (*set of all paths*)
 definition paths:: "(nat \<Rightarrow> STEP) set" where
-"paths \<equiv> {p::(nat \<Rightarrow> STEP). STATE(p(0)) = INITIAL_NODE \<and> (\<forall>n. \<exists>i. t(STATE(p n),i) = (STATE(p(Suc(n))), OUT(p n)))}"
+"paths \<equiv> {p::(nat \<Rightarrow> STEP). STATE(p(0)) = INITIAL_NODE \<and> (\<forall>n. t(STATE(p n),INPUT(p n)) = (STATE(p(Suc(n))), OUT(p n)))}"
 
 (*very simple S_1 loop*)
 definition specific_path:: "nat \<Rightarrow> STEP" where
@@ -98,7 +98,8 @@ proof-
   then have 1: "STATE(specific_path 0) = S_1" by (simp add: spec_path_cond1)
   then have 2: "\<forall>n. t(STATE(specific_path n),INPUT(specific_path n)) = (STATE(specific_path(Suc(n))), OUT(specific_path n))" using spec_path_cond2 by auto
   hence "STATE(specific_path 0) = S_1 \<and> (\<forall>n. t(STATE(specific_path n),INPUT(specific_path n)) = (STATE(specific_path(Suc(n))), OUT(specific_path n)))" by (simp add: spec_path_cond1)
-  hence 3: "specific_path \<in> paths" using paths_def by auto
+  hence 3: "specific_path \<in> paths" using paths_def
+  using INITIAL_NODE_def by auto
   thus ?thesis.
 qed
 
@@ -121,22 +122,6 @@ definition two_cyclic_path:: "(nat \<Rightarrow> STEP) \<Rightarrow> bool" where
 "two_cyclic_path p \<equiv> p\<in> paths \<and> (\<forall>n. INPUT(p n) = 1)"
 
 
-(* work in progress proof*)
-lemma "\<forall>p \<in> paths. (\<forall>n. \<exists>m > n.  INPUT(p m) = 1) \<longrightarrow>  (\<forall>n. \<exists>m > n. OUT(p m) = True)"
-proof
-  fix p
-  assume p_in_paths: "p \<in> paths"
-  show "(\<forall>n. \<exists>m > n.  INPUT(p m) = 1) \<longrightarrow>  (\<forall>n. \<exists>m > n.  OUT(p m) = True)"
-  proof
-    assume exists_input_1: "\<forall>n. \<exists>m > n.  INPUT(p m) = 1"
-    show "\<forall>n. \<exists>m > n. OUT(p m) = True"
-    proof
-      obtain y where "INPUT(p y) = 1" and "y > n"
-        using exists_input_1 by auto
-      then have "t(STATE(p y), INPUT(p y)) = (STATE(p (Suc y)), OUT(p y))" using p_in_paths paths_def by blast
-    qed
-  qed
-qed
 
 (*if p is 2-cyclic, show that consecutive i/o are never the same*)
 lemma "\<forall>p \<in> paths. two_cyclic_path p \<longrightarrow> (OUT(p n) \<noteq> OUT(p (Suc n))) \<and> (STATE(p n) \<noteq> STATE(p (Suc n)))"
