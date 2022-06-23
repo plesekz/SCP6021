@@ -122,7 +122,6 @@ definition two_cyclic_path:: "(nat \<Rightarrow> STEP) \<Rightarrow> bool" where
 "two_cyclic_path p \<equiv> p\<in> paths \<and> (\<forall>n. INPUT(p n) = 1)"
 
 
-
 (*if p is 2-cyclic, show that consecutive i/o are never the same*)
 lemma "\<forall>p \<in> paths. two_cyclic_path p \<longrightarrow> (OUT(p n) \<noteq> OUT(p (Suc n))) \<and> (STATE(p n) \<noteq> STATE(p (Suc n)))"
 proof
