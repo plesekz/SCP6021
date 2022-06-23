@@ -98,7 +98,8 @@ proof-
   then have 1: "STATE(specific_path 0) = S_1" by (simp add: spec_path_cond1)
   then have 2: "\<forall>n. t(STATE(specific_path n),INPUT(specific_path n)) = (STATE(specific_path(Suc(n))), OUT(specific_path n))" using spec_path_cond2 by auto
   hence "STATE(specific_path 0) = S_1 \<and> (\<forall>n. t(STATE(specific_path n),INPUT(specific_path n)) = (STATE(specific_path(Suc(n))), OUT(specific_path n)))" by (simp add: spec_path_cond1)
-  hence 3: "specific_path \<in> paths" using paths_def by auto
+  hence 3: "specific_path \<in> paths" using paths_def
+  using INITIAL_NODE_def by auto
   thus ?thesis.
 qed
 
