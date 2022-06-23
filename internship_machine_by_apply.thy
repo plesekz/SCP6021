@@ -41,8 +41,4 @@ lemma stays_in_s_2: "\<forall>p \<in> paths. STATE(p n) = S_1 \<and> INPUT(p n) 
   apply (auto simp add: paths_def)
   apply (metis gr0_conv_Suc old.prod.inject t.simps(2))
   by (metis Pair_inject Suc_lessD less_antisym t.simps(3))
-
-  (*gotta expand the state now*)
-  
-
 end
