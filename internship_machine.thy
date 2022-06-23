@@ -76,7 +76,7 @@ inductive group_interconnectivness:: "State set \<Rightarrow> bool" where
 
 (*set of all paths*)
 definition paths:: "(nat \<Rightarrow> STEP) set" where
-"paths \<equiv> {p::(nat \<Rightarrow> STEP). STATE(p(0)) = INITIAL_NODE \<and> (\<forall>n. \<exists>i. t(STATE(p n),i) = (STATE(p(Suc(n))), OUT(p n)))}"
+"paths \<equiv> {p::(nat \<Rightarrow> STEP). STATE(p(0)) = INITIAL_NODE \<and> (\<forall>n. t(STATE(p n),INPUT(p n)) = (STATE(p(Suc(n))), OUT(p n)))}"
 
 (*very simple S_1 loop*)
 definition specific_path:: "nat \<Rightarrow> STEP" where
@@ -120,23 +120,6 @@ definition cyclic_paths:: "(nat \<Rightarrow> STEP) set" where
 definition two_cyclic_path:: "(nat \<Rightarrow> STEP) \<Rightarrow> bool" where
 "two_cyclic_path p \<equiv> p\<in> paths \<and> (\<forall>n. INPUT(p n) = 1)"
 
-
-(* work in progress proof*)
-lemma "\<forall>p \<in> paths. (\<forall>n. \<exists>m > n.  INPUT(p m) = 1) \<longrightarrow>  (\<forall>n. \<exists>m > n. OUT(p m) = True)"
-proof
-  fix p
-  assume p_in_paths: "p \<in> paths"
-  show "(\<forall>n. \<exists>m > n.  INPUT(p m) = 1) \<longrightarrow>  (\<forall>n. \<exists>m > n.  OUT(p m) = True)"
-  proof
-    assume exists_input_1: "\<forall>n. \<exists>m > n.  INPUT(p m) = 1"
-    show "\<forall>n. \<exists>m > n. OUT(p m) = True"
-    proof
-      obtain y where "INPUT(p y) = 1" and "y > n"
-        using exists_input_1 by auto
-      then have "t(STATE(p y), INPUT(p y)) = (STATE(p (Suc y)), OUT(p y))" using p_in_paths paths_def by blast
-    qed
-  qed
-qed
 
 (*if p is 2-cyclic, show that consecutive i/o are never the same*)
 lemma "\<forall>p \<in> paths. two_cyclic_path p \<longrightarrow> (OUT(p n) \<noteq> OUT(p (Suc n))) \<and> (STATE(p n) \<noteq> STATE(p (Suc n)))"
