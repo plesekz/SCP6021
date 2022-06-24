@@ -119,7 +119,7 @@ definition cyclic_paths:: "(nat \<Rightarrow> STEP) set" where
 
 (* example of cyclic path that travels between s_1 and s_2 *)
 definition two_cyclic_path:: "(nat \<Rightarrow> STEP) \<Rightarrow> bool" where
-"two_cyclic_path p \<equiv> p\<in> paths \<and> (\<forall>n. INPUT(p n) = 1)"
+"two_cyclic_path p \<equiv> p \<in> paths \<and> (\<forall>n. INPUT(p n) = 1)"
 
 
 
@@ -330,6 +330,84 @@ proof
       qed
     qed
   qed
+
+definition STATES:: "(nat \<Rightarrow> STEP) \<Rightarrow> State set" where
+"STATES p = {s::State. p \<in> paths \<and> (\<exists>n. STATE(p n) = s)}"
+
+
+lemma "\<forall>p \<in> paths. two_cyclic_path p \<longrightarrow> STATE(p (2*n + 1)) = S_2"
+proof
+  fix p
+  assume p_in_paths: "p \<in> paths"
+  show "two_cyclic_path p\<longrightarrow> STATE(p (2*n + 1)) = S_2"
+  proof
+    assume t_c_p: "two_cyclic_path p"
+    show "STATE(p (2*n + 1)) = S_2"
+    proof(induction n)
+      case 0
+      have "INPUT(p 0) = 1" using t_c_p two_cyclic_path_def by auto
+      then have "t(S_1,1) = (STATE(p (Suc 0)), OUT(p 0))" using paths_def p_in_paths INITIAL_NODE_def
+        by (metis (mono_tags, lifting) mem_Collect_eq) 
+      then have "STATE(p (Suc 0)) = S_2" by simp
+      moreover have "STATE(p (2*0 + 1)) = STATE(p (Suc 0))"
+        by simp
+      moreover have "STATE(p (2*0 + 1)) = S_2"
+      by (simp add: calculation(1))
+    then show ?case.
+    next
+      case (Suc n)
+      have "t(STATE(p (2 * n + 1)),INPUT(p (2 * n + 1))) = (STATE(p (Suc ((2 * n + 1)))), OUT(p ((2 *  n + 1))))" using paths_def p_in_paths INITIAL_NODE_def
+        by auto
+      then have "t(S_2, 1) = (STATE(p (Suc ((2* n + 1)))), OUT(p ((2 *  n + 1))))"
+        using Suc t_c_p two_cyclic_path_def by fastforce
+      then have "STATE(p (Suc ((2* n + 1)))) = S_1" by simp
+      then have "t(STATE(p (Suc ((2* n + 1)))), INPUT(p (Suc ((2* n + 1))))) = (STATE(p (Suc (Suc(2* n + 1)))), OUT(p ( (Suc ((2* n + 1))))))" 
+        using paths_def p_in_paths
+        by blast
+      then have "t(S_1, 1) = ((STATE(p (Suc (Suc(2* n + 1)))), OUT(p ( (Suc ((2* n + 1)))))))"
+        using \<open>STATE (p (Suc (2 * n + 1))) = S_1\<close> t_c_p two_cyclic_path_def by auto
+      then have "STATE(p (Suc (Suc(2* n + 1)))) = S_2" by simp
+      then have "STATE(p (2*(Suc n) + 1)) = S_2" by simp     
+      then show ?case.
+    qed
+  qed
+
+qed
+
+lemma "\<forall>p \<in> paths. two_cyclic_path p \<longrightarrow> ((odd n \<longrightarrow> STATE(p n) = S_2) \<and> (even n \<longrightarrow> STATE(p n) = S_1))"
+proof
+  fix p
+  assume "p \<in> paths"
+  show "two_cyclic_path p \<longrightarrow> ((odd n \<longrightarrow> STATE (p n) = S_2) \<and> (even n \<longrightarrow> STATE (p n) = S_1))"
+  proof
+    assume "two_cyclic_path p"
+    show "((odd n \<longrightarrow> STATE (p n) = S_2) \<and> (even n \<longrightarrow> STATE (p n) = S_1))"
+    proof
+      
+    next
+       
+    qed
+  qed
+qed
+
+
+
+
+lemma "\<forall>p\<in> paths. two_cyclic_path p \<longrightarrow>  STATES p = \<Sigma>"
+proof
+  fix p
+  assume p_in_paths: "p \<in> paths"
+  show "two_cyclic_path p \<longrightarrow> STATES p = \<Sigma>"
+  proof
+    assume two_cylcic: "two_cyclic_path p"
+    show "STATES p = \<Sigma>"
+    proof
+    (*Set S and Set B \<forall>x. x \<in> S \<longleftrightarrow> x \<in> B*)
+      have "STATE(p 0) = S_1" using p_in_paths paths_def INITIAL_NODE_def by auto
+      then have "S_1 \<in> STATES p" 
+    qed
+  qed
+qed
 
 
 

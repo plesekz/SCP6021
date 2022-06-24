@@ -38,6 +38,18 @@ definition simple_path:: "path" where
 "simple_path n = \<lparr>I_A=True,I_B=True, OUT= Some(1), STATE=INIT_NODE, COUNTER= Suc 0\<rparr>"
 
 
+lemma "paths \<noteq> {}"
+  apply(auto)
+  apply(simp add: paths_def)
+  apply(erule allE[where x="simple_path"])
+  apply(auto simp add: simple_path_def)
+  done
+   
+  
+  
+  
+  
+
 (*prove that paths is not empty*)
 lemma "paths \<noteq> {}"
 proof
