@@ -49,4 +49,10 @@ lemma stays_in_s_3: "\<forall>p \<in> paths. STATE(p n) = S_1 \<and> INPUT(p n) 
   apply (rule, rule_tac x="p" and n1="n" and m1="m" and i1="i" in allE[OF stays_in_s_2])
   apply (simp add: paths_def)
   by (metis old.prod.inject t.simps(3))
+
+lemma "\<forall>p \<in> paths. \<exists>m > n. INPUT(p n) > 0 \<and> STATE(p n) = S_1 \<longrightarrow> STATE(p m) = S_2"
+  apply(rule)
+done
 end
+
+
