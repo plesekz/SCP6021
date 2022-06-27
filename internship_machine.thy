@@ -1,5 +1,6 @@
 theory internship_machine
-  imports Main
+  imports Main "HOL-Eisbach.Eisbach" "HOL-Eisbach.Eisbach_Tools"
+  
 
 begin
 
@@ -78,6 +79,9 @@ inductive group_interconnectivness:: "State set \<Rightarrow> bool" where
 definition paths:: "(nat \<Rightarrow> STEP) set" where
 "paths \<equiv> {p::(nat \<Rightarrow> STEP). STATE(p(0)) = INITIAL_NODE \<and> (\<forall>n. t(STATE(p n),INPUT(p n)) = (STATE(p(Suc(n))), OUT(p n)))}"
 
+
+
+
 (*very simple S_1 loop*)
 definition specific_path:: "nat \<Rightarrow> STEP" where
 "specific_path n = \<lparr> INPUT = 0,STATE = S_1,OUT = False \<rparr>"
@@ -121,16 +125,12 @@ definition cyclic_paths:: "(nat \<Rightarrow> STEP) set" where
 definition two_cyclic_path:: "(nat \<Rightarrow> STEP) \<Rightarrow> bool" where
 "two_cyclic_path p \<equiv> p \<in> paths \<and> (\<forall>n. INPUT(p n) = 1)"
 
-
-
-method state_case = 
-  (rule, cases "STA
+method state_case for p :: "nat \<Rightarrow> STEP" = 
+  (rule, cases "STATE(p n) = S_1", auto simp add: paths_def)
 
 lemma "\<forall>p \<in> paths. two_cyclic_path p \<longrightarrow> (OUT(p n) \<noteq> OUT(p (Suc n))) \<and> (STATE(p n) \<noteq> STATE(p (Suc n)))"
-  apply(rule)
-  apply(cases "STATE(p n) = S_1")
-   apply(auto simp add: paths_def)
-       apply(auto simp add: two_cyclic_path_def)
+  apply(state_case p)
+   apply(auto simp add: two_cyclic_path_def)
        apply (metis fst_swap snd_eqD swap_simp t.elims t.simps(4))
       apply (metis (no_types, lifting) prod.inject t.elims t.simps(2))
      apply (smt (verit, best) Pair_inject State.exhaust t.simps(2) t.simps(4))
@@ -364,11 +364,12 @@ proof
 definition STATES:: "(nat \<Rightarrow> STEP) \<Rightarrow> State set" where
 "STATES p = {s::State. p \<in> paths \<and> (\<exists>n. STATE(p n) = s)}"
 
+method path_induct for n:: "nat" = 
+(rule,induction n, auto simp add: paths_def)
+
 
 lemma odd_p1: "\<forall>p \<in> paths. two_cyclic_path p \<longrightarrow> STATE(p (2*n + 1)) = S_2"
-  apply(rule)
-  apply(induction n)
-   apply(auto simp add: paths_def)
+  apply(path_induct n)
    apply (metis INITIAL_NODE_def One_nat_def prod.inject t.simps(2) two_cyclic_path_def)
   by (metis numeral_1_eq_Suc_0 numerals(1) old.prod.inject t.simps(2) t.simps(4) two_cyclic_path_def)
 
