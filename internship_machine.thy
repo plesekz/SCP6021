@@ -123,6 +123,22 @@ definition two_cyclic_path:: "(nat \<Rightarrow> STEP) \<Rightarrow> bool" where
 
 
 
+method state_case = 
+  (rule, cases "STA
+
+lemma "\<forall>p \<in> paths. two_cyclic_path p \<longrightarrow> (OUT(p n) \<noteq> OUT(p (Suc n))) \<and> (STATE(p n) \<noteq> STATE(p (Suc n)))"
+  apply(rule)
+  apply(cases "STATE(p n) = S_1")
+   apply(auto simp add: paths_def)
+       apply(auto simp add: two_cyclic_path_def)
+       apply (metis fst_swap snd_eqD swap_simp t.elims t.simps(4))
+      apply (metis (no_types, lifting) prod.inject t.elims t.simps(2))
+     apply (smt (verit, best) Pair_inject State.exhaust t.simps(2) t.simps(4))
+    apply (smt (verit, ccfv_threshold) Pair_inject State.exhaust t.simps(2) t.simps(4))
+   apply (metis (no_types, opaque_lifting) prod.inject t.elims t.simps(2))
+  by (smt (verit) Pair_inject State.exhaust t.simps(2) t.simps(4))
+
+
 (*if p is 2-cyclic, show that consecutive i/o are never the same*)
 lemma "\<forall>p \<in> paths. two_cyclic_path p \<longrightarrow> (OUT(p n) \<noteq> OUT(p (Suc n))) \<and> (STATE(p n) \<noteq> STATE(p (Suc n)))"
 proof
@@ -187,6 +203,20 @@ proof
   from 4 0 show "False" by auto
 qed
 
+
+
+thm dec_induct[where ?i="Suc n" and ?j = "Suc m"   ]
+
+lemma "P l \<Longrightarrow> (\<forall>i. l\<le>i \<and> i<u \<and> P i \<longrightarrow> P (Suc i)) \<Longrightarrow> n \<ge> l \<Longrightarrow> n<u \<Longrightarrow> P n"
+  by (simp add: dec_induct)
+
+definition INPUTS:: "(nat \<Rightarrow> STEP) \<Rightarrow> INPUT set" where
+"INPUTS p = {i::INPUT. \<exists>n. INPUT(p n) = i}"
+
+(* If IN(p j) = 0  \<longrightarrow> STATE(p j) = S_1 \<or> STATE(p j) = S_2*)
+(*If OUT(p Suc n) = True \<longrightarrow> *)
+lemma "\<forall>p \<in> paths. INPUT(p n) = 0 \<longrightarrow> STATE(p n) = S_1 \<or> STATE(p n) = S_2"
+  using State.exhaust by blast
 (*show that if a path starts in s_1 at some time point
  then moves to s_2 then if it only has input 0 for
  some interval then it will stay in s_2 for that interval [useful for proving the security lemma]*)
@@ -335,7 +365,15 @@ definition STATES:: "(nat \<Rightarrow> STEP) \<Rightarrow> State set" where
 "STATES p = {s::State. p \<in> paths \<and> (\<exists>n. STATE(p n) = s)}"
 
 
-lemma "\<forall>p \<in> paths. two_cyclic_path p \<longrightarrow> STATE(p (2*n + 1)) = S_2"
+lemma odd_p1: "\<forall>p \<in> paths. two_cyclic_path p \<longrightarrow> STATE(p (2*n + 1)) = S_2"
+  apply(rule)
+  apply(induction n)
+   apply(auto simp add: paths_def)
+   apply (metis INITIAL_NODE_def One_nat_def prod.inject t.simps(2) two_cyclic_path_def)
+  by (metis numeral_1_eq_Suc_0 numerals(1) old.prod.inject t.simps(2) t.simps(4) two_cyclic_path_def)
+
+
+lemma odd_p: "\<forall>p \<in> paths. two_cyclic_path p \<longrightarrow> STATE(p (2*n + 1)) = S_2"
 proof
   fix p
   assume p_in_paths: "p \<in> paths"
@@ -364,32 +402,55 @@ proof
       then have "t(STATE(p (Suc ((2* n + 1)))), INPUT(p (Suc ((2* n + 1))))) = (STATE(p (Suc (Suc(2* n + 1)))), OUT(p ( (Suc ((2* n + 1))))))" 
         using paths_def p_in_paths
         by blast
-      then have "t(S_1, 1) = ((STATE(p (Suc (Suc(2* n + 1)))), OUT(p ( (Suc ((2* n + 1)))))))"
+      then have "t(S_1, 1) = ((STATE(p (Suc (Suc(2* n + 1)))), OUT(p ( (Suc ((2*n + 1)))))))"
         using \<open>STATE (p (Suc (2 * n + 1))) = S_1\<close> t_c_p two_cyclic_path_def by auto
       then have "STATE(p (Suc (Suc(2* n + 1)))) = S_2" by simp
       then have "STATE(p (2*(Suc n) + 1)) = S_2" by simp     
       then show ?case.
     qed
   qed
-
 qed
 
-lemma "\<forall>p \<in> paths. two_cyclic_path p \<longrightarrow> ((odd n \<longrightarrow> STATE(p n) = S_2) \<and> (even n \<longrightarrow> STATE(p n) = S_1))"
+
+
+
+lemma even_p: "\<forall>p \<in> paths. two_cyclic_path p \<longrightarrow> STATE(p (2*n)) = S_1"
 proof
   fix p
-  assume "p \<in> paths"
-  show "two_cyclic_path p \<longrightarrow> ((odd n \<longrightarrow> STATE (p n) = S_2) \<and> (even n \<longrightarrow> STATE (p n) = S_1))"
+  assume p_in_paths: "p \<in> paths"
+  show "two_cyclic_path p\<longrightarrow>  STATE(p (2*n)) = S_1"
   proof
-    assume "two_cyclic_path p"
-    show "((odd n \<longrightarrow> STATE (p n) = S_2) \<and> (even n \<longrightarrow> STATE (p n) = S_1))"
-    proof
-      
+    assume t_c_p: "two_cyclic_path p"
+    show "STATE(p (2*n)) = S_1"
+    proof(induction n)
+      case 0
+      then have "STATE(p (2 * 0)) = STATE(p 0)" by simp
+      then have "... = S_1" using p_in_paths paths_def INITIAL_NODE_def by auto
+      then show ?case by simp
     next
-       
+      case (Suc n)
+      have "t(STATE(p (2 * n)),INPUT(p (2 * n))) = (STATE(p (Suc ((2 * n)))), OUT(p ((2 *  n))))" using paths_def p_in_paths INITIAL_NODE_def
+        by auto
+      then have "t(S_1, 1) = (STATE(p (Suc ((2* n)))), OUT(p ((2 *  n))))"
+        using Suc t_c_p two_cyclic_path_def by fastforce
+      then have "STATE(p (Suc ((2* n)))) = S_2" by simp
+      then have "t(STATE(p (Suc ((2* n)))), INPUT(p (Suc ((2* n))))) = (STATE(p (Suc (Suc(2* n)))), OUT(p ( (Suc ((2* n))))))" 
+        using paths_def p_in_paths
+        by blast
+      then have "t(S_2, 1) = ((STATE(p (Suc (Suc(2* n)))), OUT(p ( (Suc ((2* n)))))))"
+        using \<open>STATE (p (Suc (2 * n))) = S_2\<close> t_c_p two_cyclic_path_def by auto
+      then have "STATE(p (Suc (Suc(2* n)))) = S_1" by simp
+      then have "STATE(p (2*(Suc n))) = S_1" by simp     
+      then show ?case.
     qed
   qed
 qed
 
+
+
+
+lemma "\<forall>p \<in> paths. two_cyclic_path p \<longrightarrow> ((odd n \<longrightarrow> STATE(p n) = S_2) \<and> (even n \<longrightarrow> STATE(p n) = S_1))"
+  by (metis dvd_mult_div_cancel even_p odd_p odd_two_times_div_two_succ)
 
 
 
