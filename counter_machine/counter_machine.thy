@@ -160,7 +160,11 @@ qed
 
 
 (*"paths \<equiv> {p::path. STATE(p 0) = INIT_NODE \<and> (\<forall>n. t(I_A(p(n)), I_B (p(n)), STATE(p(n)), COUNT(p(n))) = (OUT(p(n)), STATE(p(Suc n)), COUNT(p(Suc n))))}"*)
+<<<<<<< Updated upstream
 lemma "\<forall>p \<in> paths. \<forall>n<n'. I_B(p n) = True \<and> (\<forall>j. j \<in> {n<..<n'} \<longrightarrow> I_B(p j) = False) \<longrightarrow> COUNTER(p n') = count p n (n' - n)"
+=======
+lemma "\<forall>p \<in> paths. \<forall>n<n'. I_B(p n) = True \<and> I_B(p n') = True \<and> (\<forall>m. m \<in> {n<..<n'} \<longrightarrow> OUT(p m) = None) \<longrightarrow> OUT(p n') = Some(count p n (n'- n))"
+>>>>>>> Stashed changes
 proof
   fix p
   assume base: "p \<in> paths"
