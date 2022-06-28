@@ -48,6 +48,9 @@ definition cyclic_paths:: "path set" where
 definition specific_path:: "nat \<Rightarrow> STEP" where
 "specific_path n = \<lparr> INPUT = 0,STATE = S_1,OUT = False \<rparr>"
 
+definition two_cyclic_path:: "(nat \<Rightarrow> STEP) \<Rightarrow> bool" where
+"two_cyclic_path p \<equiv> p \<in> paths \<and> (\<forall>n. INPUT(p n) = 1)"
+
 (*-----------------HELPER LEMMAS------------------*)
 
 lemma specific_path_state: "\<forall>n. STATE(specific_path n) = S_1" using specific_path_def by simp
@@ -63,11 +66,16 @@ lemma spec_path_cond1: "STATE(specific_path(0)) = S_1" using specific_path_state
 lemma spec_path_cond2: "\<forall>n. t(STATE(specific_path n),INPUT(specific_path n)) = (STATE(specific_path(Suc(n))), OUT(specific_path n))"
   by (simp add: specific_path_in specific_path_out specific_path_state)
 
+lemma two_cyclic_path_input: "\<forall>p. two_cyclic_path p \<longrightarrow> INPUT(p n) = 1" using two_cyclic_path_def by simp
+
 lemma init_is_s1 [simp]: "INITIAL_NODE \<equiv> S_1"
   by (simp add: INITIAL_NODE_def)
 
+lemma paths_1: "\<forall>p \<in> paths. STATE(p 0) = S_1" by(simp add: paths_def)
+
 lemma paths_2: "\<forall>p \<in> paths. t(STATE(p n),INPUT(p n)) = (STATE(p(Suc(n))), OUT(p n))"
   by (simp add: paths_def)
+
 
 lemma s2_to_s1: "\<forall>p\<in>paths. STATE(p n) = S_2 \<and> INPUT(p n) = 1 \<longrightarrow> STATE(p (Suc n)) = S_1"
   by (metis One_nat_def Pair_inject paths_2 t.simps(4))
@@ -102,7 +110,17 @@ lemma out_to_t_simp: "\<forall>p \<in> paths. OUT(p n) = snd(t(STATE(p n), INPUT
 lemma state_to_t_simp:  "\<forall>p \<in> paths. STATE(p (Suc n)) = fst(t(STATE(p n), INPUT(p n)))"
   by(simp add: paths_2)
 
+lemma "\<forall>p \<in> paths. INPUT(p n) = 0 \<longrightarrow> STATE(p n) = S_1 \<or> STATE(p n) = S_2"
+  using State.exhaust by blast
+
 (*-----------------SUB LEMMAS------------------*)
+
+
+method state_case for p :: "nat \<Rightarrow> STEP" and n :: nat=
+  (rule, cases "STATE (p(n))" rule: State.exhaust, auto)
+
+method auto_two_cyclic for p :: "nat \<Rightarrow> STEP" and n :: nat=
+  (state_case p n, auto simp add: out_to_t_simp state_to_t_simp two_cyclic_path_input)
 
 lemma specific_in_paths: "specific_path \<in> paths"
   apply(auto simp add: paths_def spec_path_cond1 spec_path_cond2)
@@ -121,6 +139,24 @@ lemma stays_in_s_1: "\<forall>p \<in> paths. STATE(p n) = S_2 \<and> INPUT(p n) 
   using input_gr_0_s2_t_simp state_to_t_simp apply fastforce
   by (metis Suc_lessD greaterThanLessThan_iff not_less_less_Suc_eq s1_to_s1)
 
+lemma odd_p1: "\<forall>p \<in> paths. two_cyclic_path p \<longrightarrow> STATE(p (2*n + 1)) = S_2"
+  apply(auto simp add: state_to_t_simp)
+  apply(auto simp add: two_cyclic_path_input)
+  apply(induction n)
+   apply(auto simp add: paths_1 state_to_t_simp two_cyclic_path_def)
+  done
+
+lemma even_p1: "\<forall>p \<in> paths. two_cyclic_path p \<longrightarrow> STATE(p (2*n)) = S_1"
+  apply(auto)
+  
+  done
+
+
+  
+
+ 
+
+
 (*-----------------MAIN LEMMAS------------------*)
 
 lemma "paths \<noteq> {}"
@@ -136,7 +172,12 @@ lemma security_s2_to_s1: "\<forall>p \<in> paths. STATE(p n) = S_2 \<and> INPUT(
   apply(simp add: stays_in_s_1)
   done
 
+lemma "p \<in> paths \<and> two_cyclic_path p \<longrightarrow> (OUT(p n) \<noteq> OUT(p (Suc n))) \<and> (STATE(p n) \<noteq> STATE(p (Suc n)))"
+  by (auto_two_cyclic p n)
 
+
+    
+ 
 
 
 
