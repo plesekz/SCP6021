@@ -73,14 +73,38 @@ inductive machine_interconnectivness:: "bool" where
 inductive group_interconnectivness:: "State set \<Rightarrow> bool" where
 "\<forall>node::State\<in>S. \<forall>onode\<in>(S-set [(node::State)]). \<exists>i::INPUT. \<exists>out::OUT. (t (node,(i)) = (onode,out)) \<Longrightarrow> group_interconnectivness S"
 
-
-
 (*set of all paths*)
 definition paths:: "(nat \<Rightarrow> STEP) set" where
 "paths \<equiv> {p::(nat \<Rightarrow> STEP). STATE(p(0)) = INITIAL_NODE \<and> (\<forall>n. t(STATE(p n),INPUT(p n)) = (STATE(p(Suc(n))), OUT(p n)))}"
 
 
 
+lemma "\<forall>p\<in>paths. STATE(p n) = S_2 \<and> INPUT(p n) = 1 \<longrightarrow> STATE(p (Suc n)) = S_1"
+  apply(auto simp: paths_def)
+  by (metis Pair_inject t.simps(4))
+
+lemma "\<forall>p\<in>paths. STATE(p n) = S_2 \<and> INPUT(p n) = 1 \<longrightarrow> STATE(p (Suc n)) = S_1"
+proof
+  fix p
+  assume a_1: "p \<in> paths"
+  show "STATE(p n) = S_2 \<and> INPUT(p n) = 1 \<longrightarrow> STATE(p (Suc n)) = S_1"
+  proof
+    assume a_2: "STATE (p n) = S_2 \<and> INPUT (p n) = 1"
+    show "STATE (p (Suc n)) = S_1"
+    proof-
+      from a_2 have a_2_1: "STATE(p n) = S_2" and a_2_2 : "INPUT(p n) = 1" by simp+
+      then have "t(STATE(p n), INPUT(p n)) = t(S_2, 1)" by simp
+      moreover have "... = (S_1, False)" by simp
+      moreover have "t(STATE(p n), INPUT(p n)) = (STATE(p (Suc n)), OUT(p n))" using paths_def a_1 by blast
+      ultimately show ?thesis by simp
+    qed
+  qed
+qed
+
+lemma casessm:
+  assumes "p\<in>paths"
+  obtains (s1) "(STATE (p n) = S_1)" |  (s2)"(STATE (p n) = S_2)"
+  sorry
 
 (*very simple S_1 loop*)
 definition specific_path:: "nat \<Rightarrow> STEP" where
@@ -125,18 +149,16 @@ definition cyclic_paths:: "(nat \<Rightarrow> STEP) set" where
 definition two_cyclic_path:: "(nat \<Rightarrow> STEP) \<Rightarrow> bool" where
 "two_cyclic_path p \<equiv> p \<in> paths \<and> (\<forall>n. INPUT(p n) = 1)"
 
-method state_case for p :: "nat \<Rightarrow> STEP" = 
-  (rule, cases "STATE(p n) = S_1", auto simp add: paths_def)
+method state_case for p :: "nat \<Rightarrow> STEP" and n :: nat= 
+  (rule, cases "STATE (p(n))" rule: State.exhaust, auto)
 
-lemma "\<forall>p \<in> paths. two_cyclic_path p \<longrightarrow> (OUT(p n) \<noteq> OUT(p (Suc n))) \<and> (STATE(p n) \<noteq> STATE(p (Suc n)))"
-  apply(state_case p)
-   apply(auto simp add: two_cyclic_path_def)
-       apply (metis fst_swap snd_eqD swap_simp t.elims t.simps(4))
-      apply (metis (no_types, lifting) prod.inject t.elims t.simps(2))
-     apply (smt (verit, best) Pair_inject State.exhaust t.simps(2) t.simps(4))
-    apply (smt (verit, ccfv_threshold) Pair_inject State.exhaust t.simps(2) t.simps(4))
-   apply (metis (no_types, opaque_lifting) prod.inject t.elims t.simps(2))
-  by (smt (verit) Pair_inject State.exhaust t.simps(2) t.simps(4))
+lemma "p \<in> paths \<and> two_cyclic_path p \<longrightarrow> (OUT(p n) \<noteq> OUT(p (Suc n))) \<and> (STATE(p n) \<noteq> STATE(p (Suc n)))"
+  apply( state_case p n)
+ 
+   apply(auto simp add: paths_def two_cyclic_path_def)
+       apply (metis Pair_inject t.simps(2) t.simps(4))
+      apply (metis Pair_inject t.simps(2))
+ 
 
 
 (*if p is 2-cyclic, show that consecutive i/o are never the same*)
@@ -367,7 +389,7 @@ definition STATES:: "(nat \<Rightarrow> STEP) \<Rightarrow> State set" where
 method path_induct for n:: "nat" = 
 (rule,induction n, auto simp add: paths_def)
 
-
+thm prod.inject
 lemma odd_p1: "\<forall>p \<in> paths. two_cyclic_path p \<longrightarrow> STATE(p (2*n + 1)) = S_2"
   apply(path_induct n)
    apply (metis INITIAL_NODE_def One_nat_def prod.inject t.simps(2) two_cyclic_path_def)
