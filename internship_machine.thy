@@ -374,6 +374,32 @@ lemma odd_p1: "\<forall>p \<in> paths. two_cyclic_path p \<longrightarrow> STATE
   by (metis numeral_1_eq_Suc_0 numerals(1) old.prod.inject t.simps(2) t.simps(4) two_cyclic_path_def)
 
 
+method single_step = 
+  (auto simp add: paths_def, metis Pair_inject t.simps)
+    
+
+
+lemma s2_to_s1: "\<forall>p \<in> paths. STATE(p n) = S_2 \<and> INPUT(p n) = 1 \<longrightarrow> STATE(p (Suc n)) = S_1"
+  by single_step
+
+lemma s1_to_s2: "\<forall>p \<in> paths. STATE(p n) = S_1 \<and> INPUT(p n) = 1 \<longrightarrow> STATE(p (Suc n)) = S_2"
+  apply(auto simp add: paths_def)
+  by (metis Pair_inject t.simps(2))
+
+
+lemma s1_to_s2: "\<forall>p \<in> paths. STATE(p n) = S_1 \<and> INPUT(p n) = 1 \<longrightarrow> STATE(p (Suc n)) = S_2"
+proof
+  fix p
+  assume pip:"p \<in> paths"
+  show "STATE(p n) = S_1 \<and> INPUT(p n) = 1 \<longrightarrow> STATE(p (Suc n)) = S_2"
+  proof
+    assume ia:"STATE(p n) = S_1 \<and> INPUT(p n) = 1"
+    then have 1: "STATE(p n) = S_1" and 2: "INPUT(p n) = 1" by auto
+    show "STATE(p (Suc n)) = S_2" using t.simps(2) paths_def pip 1 2
+      by (smt (verit, del_insts) One_nat_def Pair_inject mem_Collect_eq)
+  qed
+qed
+
 lemma odd_p: "\<forall>p \<in> paths. two_cyclic_path p \<longrightarrow> STATE(p (2*n + 1)) = S_2"
 proof
   fix p
@@ -466,7 +492,7 @@ proof
     proof
     (*Set S and Set B \<forall>x. x \<in> S \<longleftrightarrow> x \<in> B*)
       have "STATE(p 0) = S_1" using p_in_paths paths_def INITIAL_NODE_def by auto
-      then have "S_1 \<in> STATES p" 
+      then have "S_1 \<in> STATES p"  sorry
     qed
   qed
 qed
