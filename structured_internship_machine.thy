@@ -175,15 +175,15 @@ lemma specific_2_in_paths: "specific_path_2 \<in> paths"
 method interval_induct for i::nat =
   (induction i, simp, case_tac "Suc i = Suc n")
 
-lemma stays_in_s_2: "\<forall>p \<in> paths. STATE(p n) = S_1 \<and> INPUT(p n) > 0 \<and> (\<forall>j. j \<in> {n<..<m} \<longrightarrow> INPUT(p j) = 0)  \<and> i \<in> {n<..<m}\<longrightarrow> STATE(p i) = S_2"
-  apply(interval_induct i)
-  using input_gr_0_s1_t_simp state_to_t_simp apply fastforce
-  by (metis Suc_lessD greaterThanLessThan_iff not_less_less_Suc_eq s2_to_s2)
+method enhanced_interval_induct for i::nat =
+  (induction i, simp, case_tac "Suc i = Suc n",
+     (auto simp add: state_to_t_simp gr_0_is_1))
 
+lemma stays_in_s_2: "\<forall>p \<in> paths. STATE(p n) = S_1 \<and> INPUT(p n) > 0 \<and> (\<forall>j. j \<in> {n<..<m} \<longrightarrow> INPUT(p j) = 0)  \<and> i \<in> {n<..<m}\<longrightarrow> STATE(p i) = S_2"
+  by (enhanced_interval_induct i)
+  
 lemma stays_in_s_1: "\<forall>p \<in> paths. STATE(p n) = S_2 \<and> INPUT(p n) > 0 \<and> (\<forall>j. j \<in> {n<..<m} \<longrightarrow> INPUT(p j) = 0)  \<and> i \<in> {n<..<m}\<longrightarrow> STATE(p i) = S_1"
-  apply(interval_induct i)
-  using input_gr_0_s2_t_simp state_to_t_simp apply fastforce
-  by (metis Suc_lessD greaterThanLessThan_iff not_less_less_Suc_eq s1_to_s1)
+  by (enhanced_interval_induct i)
 
 lemma odd_p1: "\<forall>p \<in> paths. two_cyclic_path p \<longrightarrow> STATE(p (2*n + 1)) = S_2"
   apply(auto simp add: state_to_t_simp)
@@ -224,19 +224,6 @@ lemma all_nodes_reachable: "\<forall>s\<in>\<Sigma>. reachable s"
   apply(case_tac "s = S_1")
   using spec_path_cond1 specific_in_paths apply blast
   using not_s_1 specific_2_in_paths specific_path_2_state by blast
-
-
-  
-  
-  
-  
-  
-  
-    
- 
-
-
-
 
 
 end
